@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BatiPilot CFO — Pilotage Financier BTP</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.8/dist/cdn.min.js"></script>
+
+  <style>
+    [x-cloak] { display: none !important; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+    /* Animation Vitrine & Micro */
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .animate-gradient {
+      background-size: 200% 200%;
+      animation: gradientBG 12s ease infinite;
+    }
+    .animate-pulse-mic { animation: pulseMic 1.2s infinite alternate; }
+    @keyframes pulseMic {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      100% { transform: scale(1.1); box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+    }
+  </style>
+</head>
+
+<body class="h-full font-sans antialiased text-slate-800 bg-slate-100" x-data="btpApp()" @keydown.escape.window="closeAllModals()">
+
+  <!-- ================================================================= -->
+  <!-- 1. VITRINE ANIMÉE & ACCÈS DÉMO (Si non connecté)                  -->
+  <!-- ================================================================= -->
+  <div x-show="!isLoggedIn" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 animate-gradient flex flex-col justify-between">
+    
+    <!-- Header Vitrine -->
+    <header class="max-w-7xl w-full mx-auto p-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-slate-950 font-black text-2xl shadow-lg shadow-emerald-500/20">
+          B
+        </div>
+        <div>
+          <span class="font-black text-white text-xl tracking-tight block leading-none">BatiPilot CFO</span>
+          <span class="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">Solution Pilote BTP — Version Démo</span>
+        </div>
+      </div>
+      <button @click="showAuthModal = true" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-500/25 transition text-xs">
+        Accès Démonstration
+      </button>
+    </header>
+
+    <!-- Hero Vitrine -->
+    <main class="max-w-7xl w-full mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      <div class="lg:col-span-7 space-y-6 text-left">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+          <i data-lucide="mic" class="w-4 h-4"></i>
+          <span>Assistant vocal & Pilotage de chantier</span>
+        </div>
+
+        <h1 class="text-4xl lg:text-6xl font-black text-white leading-tight tracking-tight">
+          Pilotez la rentabilité de vos chantiers à la <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">Voix et au Quotidien</span>.
+        </h1>
+
+        <p class="text-slate-300 text-sm lg:text-base leading-relaxed max-w-2xl">
+          Dictez vos comptes-rendus et dépenses terrain, suivez vos marges brutes en temps réel et simplifiez vos relances clients depuis une interface unique.
+        </p>
+
+        <!-- Objectifs de la solution -->
+        <div class="grid grid-cols-3 gap-4 pt-4 border-t border-slate-800">
+          <div>
+            <p class="text-sm font-bold text-white">Suivi Trésorerie</p>
+            <p class="text-xs text-slate-400">Relances impayés intégrées</p>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-emerald-400">Saisie Vocale</p>
+            <p class="text-xs text-slate-400">Gain de temps sur le terrain</p>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-white">Devis Rapides</p>
+            <p class="text-xs text-slate-400">Validation tactile sur écran</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Connexion / Demo -->
+      <div class="lg:col-span-5 bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl shadow-2xl space-y-6">
+        <div class="space-y-2">
+          <h2 class="text-xl font-bold text-white">Espace de Démonstration</h2>
+          <p class="text-xs text-slate-400">Accédez à l'interface de test interactif</p>
+        </div>
+
+        <!-- Switch Auth Mode -->
+        <div class="flex bg-slate-950 p-1 rounded-xl text-xs font-semibold border border-slate-800">
+          <button type="button" @click="authMode = 'login'" :class="authMode === 'login' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'" class="flex-1 py-2 rounded-lg transition text-center">Connexion Démo</button>
+          <button type="button" @click="authMode = 'register'" :class="authMode === 'register' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'" class="flex-1 py-2 rounded-lg transition text-center">Créer un espace</button>
+        </div>
+
+        <form @submit.prevent="handleAuth()" class="space-y-4 text-xs">
+          <template x-if="authMode === 'register'">
+            <div>
+              <label class="block text-slate-300 font-semibold mb-1">Raison sociale / Entreprise</label>
+              <input type="text" x-model="authForm.companyName" required placeholder="Ex: Batiment Concept EURL" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-emerald-500 transition">
+            </div>
+          </template>
+
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1">Adresse Email Pro</label>
+            <input type="email" x-model="authForm.email" required placeholder="contact@entreprise-btp.fr" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-emerald-500 transition">
+          </div>
+
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1">Mot de passe (facultatif pour démo)</label>
+            <input type="password" x-model="authForm.password" placeholder="••••••••" class="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-white outline-none focus:border-emerald-500 transition">
+          </div>
+
+          <button type="submit" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold rounded-xl shadow-lg shadow-emerald-500/20 transition text-sm">
+            <span x-text="authMode === 'login' ? 'Accéder à la démonstration' : 'Démarrer un espace de test'"></span>
+          </button>
+        </form>
+
+        <div class="pt-4 border-t border-slate-800">
+          <p class="text-[11px] text-slate-400 mb-2">Comptes de démonstration pré-configurés :</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" @click="loginAsDemo('pierre@martin-renov.fr', 'Martin Rénovation SARL')" class="p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-[11px] text-left text-slate-300 transition">
+              <span class="block font-bold text-white">Martin Rénov</span>
+              <span class="text-[10px] text-slate-500">Artisan Solo</span>
+            </button>
+            <button type="button" @click="loginAsDemo('contact@batisud.fr', 'BatiSud Construction')" class="p-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-[11px] text-left text-slate-300 transition">
+              <span class="block font-bold text-white">BatiSud SARL</span>
+              <span class="text-[10px] text-slate-500">PME 8 salariés</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer Vitrine -->
+    <footer class="max-w-7xl w-full mx-auto p-6 text-center text-xs text-slate-500 border-t border-slate-800/50">
+      <p>© 2026 BatiPilot CFO — Prototype interactif de démonstration. Données stockées localement dans votre navigateur.</p>
+    </footer>
+  </div>
+
+
+  <!-- ================================================================= -->
+  <!-- 2. APPLICATION PRINCIPALE (Accès espace connecté)                 -->
+  <!-- ================================================================= -->
+  <div x-show="isLoggedIn" x-cloak class="flex h-screen overflow-hidden">
+    
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="w-64 bg-slate-950 text-slate-300 flex flex-col justify-between p-4 flex-shrink-0 border-r border-slate-800 select-none">
+      <div class="space-y-6">
+        <!-- Logo -->
+        <div class="flex items-center gap-3 px-2 py-1">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center font-black text-slate-950 text-xl shadow-lg shadow-emerald-500/20">
+            B
+          </div>
+          <div>
+            <h1 class="font-bold text-white text-base leading-none">BatiPilot</h1>
+            <p class="text-[10px] text-emerald-400 font-medium mt-1 uppercase tracking-wider">Pilotage Financial & Voice</p>
+          </div>
+        </div>
+
+        <!-- Bouton Dictée Vocale Globale -->
+        <button type="button" @click="openVoiceModal('global')" 
+                class="w-full flex items-center justify-between px-3 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-bold border border-red-500/30 transition">
+          <div class="flex items-center gap-2">
+            <i data-lucide="mic" class="w-4 h-4 text-red-500 animate-pulse"></i>
+            <span>Dictée Vocale</span>
+          </div>
+          <span class="px-1.5 py-0.5 bg-red-500/20 text-[9px] rounded font-extrabold uppercase">Direct</span>
+        </button>
+
+        <!-- Menu Navigation -->
+        <nav class="space-y-1 text-xs font-semibold">
+          <button type="button" @click="setTab('cfo')" 
+                  :class="currentTab === 'cfo' ? 'bg-emerald-500/15 text-emerald-400 border-l-4 border-emerald-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'"
+                  class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            <span>Tableau de Bord</span>
+          </button>
+
+          <button type="button" @click="setTab('chantiers')" 
+                  :class="currentTab === 'chantiers' ? 'bg-indigo-500/15 text-indigo-400 border-l-4 border-indigo-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'"
+                  class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+            <i data-lucide="hard-hat" class="w-4 h-4"></i>
+            <span>Chantiers & Coûts</span>
+          </button>
+
+          <button type="button" @click="setTab('devis')" 
+                  :class="currentTab === 'devis' ? 'bg-blue-500/15 text-blue-400 border-l-4 border-blue-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'"
+                  class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+            <i data-lucide="file-signature" class="w-4 h-4"></i>
+            <span>Devis & Signatures</span>
+          </button>
+
+          <button type="button" @click="setTab('soustraitants')" 
+                  :class="currentTab === 'soustraitants' ? 'bg-teal-500/15 text-teal-400 border-l-4 border-teal-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'"
+                  class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+            <span>Sous-traitants & Pièces</span>
+          </button>
+
+          <button type="button" @click="setTab('pointage')" 
+                  :class="currentTab === 'pointage' ? 'bg-amber-500/15 text-amber-400 border-l-4 border-amber-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'"
+                  class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+            <i data-lucide="timer" class="w-4 h-4"></i>
+            <span>Pointage & Dépenses</span>
+          </button>
+
+          <button type="button" @click="setTab('facturation')" 
+                  :class="currentTab === 'facturation' ? 'bg-purple-500/15 text-purple-400 border-l-4 border-purple-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'"
+                  class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+            <i data-lucide="receipt" class="w-4 h-4"></i>
+            <span>Factures & Relances</span>
+          </button>
+
+          <button type="button" @click="setTab('tarifs')" 
+                  :class="currentTab === 'tarifs' ? 'bg-sky-500/15 text-sky-400 border-l-4 border-sky-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'"
+                  class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+            <i data-lucide="crown" class="w-4 h-4"></i>
+            <span>Abonnements & Offres</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- User Profile Card -->
+      <div class="space-y-2">
+        <button type="button" @click="resetDemoData()" class="w-full p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-[11px] text-slate-400 hover:text-white flex items-center justify-between transition">
+          <span class="flex items-center gap-1.5">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            <span>Réinitialiser la démo</span>
+          </span>
+        </button>
+
+        <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-2.5 overflow-hidden">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-xs font-bold text-slate-950 flex-shrink-0">
+              <span x-text="currentUser?.companyName ? currentUser.companyName.substring(0,2).toUpperCase() : 'US'"></span>
+            </div>
+            <div class="truncate text-xs">
+              <p class="font-bold text-white truncate" x-text="currentUser?.companyName"></p>
+              <p class="text-slate-400 text-[10px] truncate" x-text="currentUser?.email"></p>
+            </div>
+          </div>
+          <button type="button" @click="logout()" title="Se déconnecter" class="text-slate-400 hover:text-red-400 p-1.5 transition">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CONTENU ET MODULES DE L'APPLICATION -->
+    <main class="flex-1 overflow-y-auto bg-slate-50 flex flex-col">
+      
+      <!-- Top Navigation Header -->
+      <header class="h-14 bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-10 shadow-xs">
+        <div class="flex items-center gap-3 text-xs">
+          <span class="font-bold text-slate-900" x-text="currentUser?.companyName"></span>
+          <span class="text-slate-300">•</span>
+          <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+            Module <span x-text="currentTabName"></span>
+          </span>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button type="button" @click="setTab('tarifs')" class="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 transition">
+            <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-500"></i>
+            <span>Formule Pro CFO (69€/m)</span>
+          </button>
+          <button type="button" @click="openPdfModal('Bilan Financier Synthétique')" class="flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 transition shadow-xs">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span>Export Rapport PDF</span>
+          </button>
+          <button type="button" @click="setTab('devis')" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg transition shadow-xs">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>+ Créer Devis</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- PANNEAUX DE CONTENU -->
+      <div class="p-8 max-w-7xl mx-auto w-full space-y-6 flex-1">
+
+        <!-- ========================================== -->
+        <!-- TAB 1 : TABLEAU DE BORD CFO               -->
+        <!-- ========================================== -->
+        <section x-show="currentTab === 'cfo'" x-cloak class="space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">BTP CFO — Suivi Financier</span>
+              <h2 class="text-2xl font-black text-slate-900 mt-0.5">Tableau de bord de rentabilité</h2>
+            </div>
+            <button type="button" @click="refreshBriefingIA()" class="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-xs">
+              <i data-lucide="refresh-cw" class="w-4 h-4 text-emerald-600" :class="isRefreshingBriefing ? 'animate-spin' : ''"></i>
+              <span>Actualiser le Synthèse</span>
+            </button>
+          </div>
+
+          <!-- Synthèse Automatique Dynamique -->
+          <div class="bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-950 text-white rounded-2xl p-6 border border-emerald-500/30 shadow-lg space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center gap-2 text-xs font-extrabold text-emerald-400 uppercase tracking-wider">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                <span>Analyse Automatique du Portefeuille</span>
+              </div>
+              <span class="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">Calcul en temps réel</span>
+            </div>
+
+            <div class="text-sm leading-relaxed text-slate-200">
+              <p x-html="briefingIaContent.summary"></p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+              <template x-for="rec in briefingIaContent.recommendations" :key="rec.id">
+                <div class="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 text-xs space-y-1">
+                  <span class="font-bold text-emerald-400 block" x-text="rec.title"></span>
+                  <p class="text-slate-400 text-[11px]" x-text="rec.detail"></p>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- KPIs Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <p class="text-xs font-bold text-slate-400 uppercase">CA prévu total</p>
+              <p class="text-2xl font-black text-slate-900 mt-2" x-text="formatCurrency(stats.caPrevu)"></p>
+              <p class="text-xs text-slate-500 mt-1" x-text="`${chantiersList.length} chantier(s)`"></p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <p class="text-xs font-bold text-slate-400 uppercase">CA Facturé</p>
+              <p class="text-2xl font-black text-slate-900 mt-2" x-text="formatCurrency(stats.caFacture)"></p>
+              <p class="text-xs text-emerald-600 font-bold mt-1" x-text="`${stats.caPrevu ? Math.round((stats.caFacture / stats.caPrevu) * 100) : 0}% du marché`"></p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <p class="text-xs font-bold text-slate-400 uppercase">CA Encaissé</p>
+              <p class="text-2xl font-black text-emerald-600 mt-2" x-text="formatCurrency(stats.caEncaisse)"></p>
+              <p class="text-xs text-slate-400 mt-1">Factures réglées</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <p class="text-xs font-bold text-slate-400 uppercase">Marge Moyenne</p>
+              <p class="text-2xl font-black text-slate-900 mt-2" x-text="`${stats.margeMoyenne}%`"></p>
+              <p class="text-xs font-bold text-emerald-600 mt-1">Objectif &gt; 30 %</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <p class="text-xs font-bold text-slate-400 uppercase">Dépenses engagées</p>
+              <p class="text-2xl font-black text-slate-900 mt-2" x-text="formatCurrency(stats.totalCoutReel)"></p>
+              <p class="text-xs text-slate-400 mt-1">Achats & Heures</p>
+            </div>
+          </div>
+
+          <!-- Dataviz & Jauges -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+              <h3 class="text-sm font-bold text-slate-900 mb-4">Trésorerie & Suivi de Facturation</h3>
+              <div class="h-64 relative">
+                <canvas id="cashflowChart"></canvas>
+              </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 mb-1">Marge Brute par Chantier</h3>
+                <p class="text-xs text-slate-400 mb-4">Mise à jour dynamique selon dépenses</p>
+
+                <div class="space-y-4 max-h-60 overflow-y-auto pr-1">
+                  <template x-for="c in chantiersList" :key="c.id">
+                    <div class="space-y-1">
+                      <div class="flex justify-between text-xs font-semibold">
+                        <span class="text-slate-800 truncate max-w-[160px]" x-text="c.nom"></span>
+                        <span :class="calculateMarge(c) >= 30 ? 'text-emerald-600 font-bold' : 'text-amber-600 font-bold'" x-text="`${calculateMarge(c)}%`"></span>
+                      </div>
+                      <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex border border-slate-200">
+                        <div class="h-full transition-all duration-500 rounded-full"
+                             :style="`width: ${Math.min(Math.max(calculateMarge(c), 0), 100)}%`"
+                             :class="calculateMarge(c) >= 30 ? 'bg-emerald-500' : 'bg-amber-500'"></div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <button type="button" @click="setTab('chantiers')" class="w-full mt-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold border border-slate-200 transition">
+                Voir tous les chantiers →
+              </button>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 2 : CHANTIERS                         -->
+        <!-- ========================================== -->
+        <section x-show="currentTab === 'chantiers'" x-cloak class="space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">Suivi Opérationnel</span>
+              <h2 class="text-2xl font-black text-slate-900 mt-0.5">Gestion des Chantiers</h2>
+            </div>
+            <button type="button" @click="modalNewChantier = true" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Nouveau Chantier</span>
+            </button>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-xs uppercase">
+                  <th class="py-3.5 px-4">Chantier & Client</th>
+                  <th class="py-3.5 px-4">Avancement</th>
+                  <th class="py-3.5 px-4">Marché HT</th>
+                  <th class="py-3.5 px-4">Coût réel</th>
+                  <th class="py-3.5 px-4">Marge</th>
+                  <th class="py-3.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <template x-for="c in chantiersList" :key="c.id">
+                  <tr class="hover:bg-slate-50 transition">
+                    <td class="py-4 px-4">
+                      <p class="font-bold text-slate-900 cursor-pointer hover:text-indigo-600" @click="openSlideOver(c)" x-text="c.nom"></p>
+                      <p class="text-xs text-slate-400" x-text="c.client"></p>
+                    </td>
+                    <td class="py-4 px-4">
+                      <div class="flex items-center gap-2">
+                        <input type="range" min="0" max="100" x-model.number="c.avancement" @change="saveState()" class="w-20 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                        <span class="text-xs font-bold text-slate-700 w-9" x-text="`${c.avancement}%`"></span>
+                      </div>
+                    </td>
+                    <td class="py-4 px-4 font-bold text-slate-900" x-text="formatCurrency(c.marche)"></td>
+                    <td class="py-4 px-4 text-slate-600" x-text="formatCurrency(c.coutReel)"></td>
+                    <td class="py-4 px-4">
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold"
+                            :class="calculateMarge(c) >= 30 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'">
+                        <span x-text="`${calculateMarge(c)} %`"></span>
+                      </span>
+                    </td>
+                    <td class="py-4 px-4 text-right">
+                      <button type="button" @click="deleteChantier(c.id)" class="text-slate-400 hover:text-red-600 p-1 transition">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 3 : DEVIS & SIGNATURE                 -->
+        <!-- ========================================== -->
+        <section x-show="currentTab === 'devis'" x-cloak class="space-y-6">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-blue-600">Module Commercial</span>
+            <h2 class="text-2xl font-black text-slate-900 mt-0.5">Devis & Validation Tactile</h2>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+              <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-xs font-bold text-slate-800 uppercase">Création de Devis</h3>
+                <button type="button" @click="startVoiceDictation('devisDescription')" class="flex items-center gap-1.5 text-xs text-red-600 bg-red-50 hover:bg-red-100 font-bold px-3 py-1.5 rounded-lg border border-red-200 transition">
+                  <i data-lucide="mic" class="w-3.5 h-3.5"></i>
+                  <span>Dicter la description</span>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Intitulé du Projet</label>
+                  <input type="text" x-model="newDevis.nom" placeholder="Ex: Rénovation Cuisine M. Blanc" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nom du Client</label>
+                  <input type="text" x-model="newDevis.client" placeholder="Ex: M. Blanc" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Description détaillée (Vocale ou Clavier)</label>
+                <textarea rows="3" id="devisDescription" x-model="newDevis.description" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 resize-none"
+                          placeholder="Dictez ou saisissez les prestations, fournitures et main d'œuvre..."></textarea>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Montant Devis HT (€)</label>
+                  <input type="number" x-model.number="newDevis.marche" placeholder="8500" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Coût Estimé HT (€)</label>
+                  <input type="number" x-model.number="newDevis.coutEstime" placeholder="5200" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                <span class="text-xs text-slate-500">Marge projetée : <strong class="text-blue-600" x-text="`${calculateDevisMarge()}%`"></strong></span>
+                <button type="button" @click="openSignatureModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition shadow-xs">
+                  <i data-lucide="file-check" class="w-4 h-4"></i>
+                  <span>Faire Signer sur Écran</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Card Validation Client -->
+            <div class="bg-blue-950 text-white p-6 rounded-2xl space-y-4 flex flex-col justify-between shadow-md">
+              <div>
+                <div class="flex items-center gap-2 text-blue-400 text-xs font-bold uppercase tracking-wider mb-2">
+                  <i data-lucide="pen-tool" class="w-4 h-4"></i>
+                  <span>Signature Directe</span>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  Permet de faire valider vos propositions commerciales directement sur tablette ou smartphone lors de vos rendez-vous clients.
+                </p>
+              </div>
+              <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-1">
+                <p>✔️ Captation du tracé tactile</p>
+                <p>✔️ Conversion automatique en chantier</p>
+                <p>✔️ Format de devis structuré</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 4 : SOUS-TRAITANTS                    -->
+        <!-- ========================================== -->
+        <section x-show="currentTab === 'soustraitants'" x-cloak class="space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-teal-600">Partenaires & Suivi</span>
+              <h2 class="text-2xl font-black text-slate-900 mt-0.5">Sous-traitance & Attestations</h2>
+            </div>
+            <button type="button" @click="modalNewST = true" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
+              <i data-lucide="user-plus" class="w-4 h-4"></i>
+              <span>Nouveau sous-traitant</span>
+            </button>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-xs uppercase">
+                  <th class="py-3.5 px-4">Entreprise Sous-traitante</th>
+                  <th class="py-3.5 px-4">Corps d'état</th>
+                  <th class="py-3.5 px-4">Chantier</th>
+                  <th class="py-3.5 px-4">Montant Contrat</th>
+                  <th class="py-3.5 px-4">Statut Attestations</th>
+                  <th class="py-3.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-xs">
+                <template x-for="st in soustraitantsList" :key="st.id">
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-3.5 px-4 font-bold text-slate-900" x-text="st.nom"></td>
+                    <td class="py-3.5 px-4 text-slate-600" x-text="st.metier"></td>
+                    <td class="py-3.5 px-4 text-slate-800 font-medium" x-text="getChantierName(st.chantierId)"></td>
+                    <td class="py-3.5 px-4 font-bold text-slate-900" x-text="formatCurrency(st.montant)"></td>
+                    <td class="py-3.5 px-4">
+                      <button type="button" @click="st.urssafOk = !st.urssafOk; saveState();" 
+                              class="px-3 py-1 rounded-full text-[11px] font-bold transition flex items-center gap-1"
+                              :class="st.urssafOk ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'">
+                        <i data-lucide="shield" class="w-3 h-3"></i>
+                        <span x-text="st.urssafOk ? 'Dossier Valide' : 'Attestation à renouveler'"></span>
+                      </button>
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      <button type="button" @click="deleteST(st.id)" class="text-slate-400 hover:text-red-600 p-1">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 5 : POINTAGE & DÉPENSES               -->
+        <!-- ========================================== -->
+        <section x-show="currentTab === 'pointage'" x-cloak class="space-y-6">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Saisie Terrain</span>
+            <h2 class="text-2xl font-black text-slate-900 mt-0.5">Pointage des Heures & Dépenses</h2>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4 md:col-span-1">
+              <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="text-xs font-bold text-slate-800 uppercase">Enregistrement Dépense</h3>
+                <button type="button" @click="startVoiceDictation('pointageLibelle')" class="flex items-center gap-1.5 text-xs text-red-600 bg-red-50 hover:bg-red-100 font-bold px-2.5 py-1 rounded-lg border border-red-200 transition">
+                  <i data-lucide="mic" class="w-3.5 h-3.5"></i>
+                  <span>Dicter</span>
+                </button>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Chantier concerné</label>
+                <select x-model.number="formPointage.chantierId" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                  <template x-for="c in chantiersList" :key="c.id">
+                    <option :value="c.id" x-text="c.nom"></option>
+                  </template>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Libellé / Ouvrier</label>
+                <input type="text" id="pointageLibelle" x-model="formPointage.libelle" placeholder="Ex: Pose plaques plâtre ou Achat Matériel" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Heures (42€/h)</label>
+                  <input type="number" x-model.number="formPointage.heures" placeholder="7" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1">Ou Montant (€ HT)</label>
+                  <input type="number" x-model.number="formPointage.montantAchat" placeholder="180" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                </div>
+              </div>
+
+              <button type="button" @click="submitPointage()" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl transition shadow-xs">
+                Valider et imputer au chantier
+              </button>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs md:col-span-2 space-y-3">
+              <h3 class="text-xs font-bold text-slate-800 uppercase">Historique des Saisies</h3>
+              <div class="overflow-y-auto max-h-80">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-50 text-slate-400 font-bold border-b">
+                    <tr>
+                      <th class="py-2.5 px-3">Date</th>
+                      <th class="py-2.5 px-3">Libellé</th>
+                      <th class="py-2.5 px-3">Chantier</th>
+                      <th class="py-2.5 px-3 text-right">Coût Imputé</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <template x-for="p in pointagesList" :key="p.id">
+                      <tr>
+                        <td class="py-2.5 px-3 text-slate-400" x-text="p.date"></td>
+                        <td class="py-2.5 px-3 font-bold text-slate-800" x-text="p.libelle"></td>
+                        <td class="py-2.5 px-3 text-slate-600" x-text="getChantierName(p.chantierId)"></td>
+                        <td class="py-2.5 px-3 text-right font-bold text-amber-700" x-text="formatCurrency(p.cost)"></td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 6 : FACTURES & RELANCES               -->
+        <!-- ========================================== -->
+        <section x-show="currentTab === 'facturation'" x-cloak class="space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-purple-600">Suivi des Règlements</span>
+              <h2 class="text-2xl font-black text-slate-900 mt-0.5">Factures & Relances Clients</h2>
+            </div>
+            <button type="button" @click="modalNewFacture = true" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-xs">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>+ Émettre une Facture</span>
+            </button>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-xs uppercase">
+                  <th class="py-3.5 px-4">Facture N°</th>
+                  <th class="py-3.5 px-4">Chantier</th>
+                  <th class="py-3.5 px-4">Montant HT</th>
+                  <th class="py-3.5 px-4">Statut</th>
+                  <th class="py-3.5 px-4 text-right">Relance Impayé</th>
+                  <th class="py-3.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-xs">
+                <template x-for="f in facturesList" :key="f.id">
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-3.5 px-4 font-bold text-slate-900" x-text="f.num"></td>
+                    <td class="py-3.5 px-4 text-slate-700" x-text="getChantierName(f.chantierId)"></td>
+                    <td class="py-3.5 px-4 font-bold text-slate-900" x-text="formatCurrency(f.montant)"></td>
+                    <td class="py-3.5 px-4">
+                      <button type="button" @click="toggleFactureStatut(f)" 
+                              class="px-2.5 py-1 rounded-full text-[11px] font-bold transition"
+                              :class="f.payee ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'"
+                              x-text="f.payee ? 'Encaissée' : 'En attente'">
+                      </button>
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      <template x-if="!f.payee">
+                        <button type="button" @click="openRelanceModal(f)" class="px-3 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold rounded-xl text-[11px] inline-flex items-center gap-1 transition">
+                          <i data-lucide="send" class="w-3 h-3"></i>
+                          <span>Relancer Client</span>
+                        </button>
+                      </template>
+                      <template x-if="f.payee">
+                        <span class="text-slate-400 text-[11px]">Payée — Aucune relance</span>
+                      </template>
+                    </td>
+                    <td class="py-3.5 px-4 text-right">
+                      <button type="button" @click="deleteFacture(f.id)" class="text-slate-400 hover:text-red-600 p-1">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- TAB 7 : TARIFS & ABONNEMENTS              -->
+        <!-- ========================================== -->
+        <section x-show="currentTab === 'tarifs'" x-cloak class="space-y-8">
+          <div class="text-center max-w-2xl mx-auto space-y-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-sky-600">Offres de Lancement BatiPilot</span>
+            <h2 class="text-3xl font-black text-slate-900">Des formules adaptées aux artisans et PME</h2>
+            <p class="text-xs text-slate-500">Relances instantanées et suivi de marge brute en temps réel.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- STARTER ARTISAN -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 flex flex-col justify-between shadow-xs hover:shadow-md transition">
+              <div>
+                <h3 class="text-lg font-bold text-slate-900">Starter Artisan</h3>
+                <p class="text-xs text-slate-500 mt-1">Artisans solos & Micro-entreprises</p>
+                <div class="mt-4">
+                  <span class="text-3xl font-black text-slate-900">29 €</span>
+                  <span class="text-xs text-slate-500 font-semibold">/mois HT</span>
+                </div>
+                <ul class="mt-6 space-y-3 text-xs text-slate-700">
+                  <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> 1 utilisateur inclus</li>
+                  <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Devis & Factures illimités</li>
+                  <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Émission Devis & Factures PDF</li>
+                  <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Saisie vocale des dépenses</li>
+                </ul>
+              </div>
+              <button type="button" @click="showToast('Option démo : Formule Starter sélectionnée')" class="mt-8 w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-xl text-xs transition">
+                Choisir Starter
+              </button>
+            </div>
+
+            <!-- PRO CFO -->
+            <div class="bg-slate-950 text-white border-2 border-emerald-500 rounded-3xl p-6 flex flex-col justify-between shadow-xl relative transform hover:-translate-y-1 transition">
+              <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-slate-950 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                Recommandé
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-white">Pro CFO</h3>
+                <p class="text-xs text-slate-400 mt-1">TPE du BTP (2 à 8 salariés)</p>
+                <div class="mt-4">
+                  <span class="text-3xl font-black text-emerald-400">69 €</span>
+                  <span class="text-xs text-slate-400 font-semibold">/mois HT</span>
+                </div>
+                <ul class="mt-6 space-y-3 text-xs text-slate-300">
+                  <li class="flex items-center gap-2 text-white font-bold"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> 3 accès collaborateurs inclus</li>
+                  <li class="flex items-center gap-2 text-emerald-300 font-bold"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Synthèse automatique du portefeuille</li>
+                  <li class="flex items-center gap-2 text-emerald-300 font-bold"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Dictée Vocale illimitée</li>
+                  <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Relances WhatsApp en 1 clic</li>
+                  <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-400"></i> Suivi des pièces sous-traitance</li>
+                </ul>
+              </div>
+              <button type="button" @click="showToast('Formule Pro CFO active sur votre espace !')" class="mt-8 w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 rounded-xl text-xs transition shadow-md">
+                Formule Actuelle (Active)
+              </button>
+            </div>
+
+            <!-- BUSINESS PREMIER -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 flex flex-col justify-between shadow-xs hover:shadow-md transition">
+              <div>
+                <h3 class="text-lg font-bold text-slate-900">Business Premier</h3>
+                <p class="text-xs text-slate-500 mt-1">PME BTP & Multi-chantiers</p>
+                <div class="mt-4">
+                  <span class="text-3xl font-black text-slate-900">149 €</span>
+                  <span class="text-xs text-slate-500 font-semibold">/mois HT</span>
+                </div>
+                <ul class="mt-6 space-y-3 text-xs text-slate-700">
+                  <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Utilisateurs illimités</li>
+                  <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Situations de travaux & Retenues (5%)</li>
+                  <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Exports comptables BTP</li>
+                  <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-500"></i> Support prioritaire dédié</li>
+                </ul>
+              </div>
+              <button type="button" @click="showToast('Option démo : Demande d\'évolution enregistrée')" class="mt-8 w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 rounded-xl text-xs transition">
+                Changer pour Business
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Matrice Comparative -->
+          <div class="bg-white rounded-3xl border border-slate-200 p-6 space-y-4">
+            <h3 class="text-sm font-bold text-slate-900 uppercase">Analyse comparative des fonctionnalités du marché</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="bg-slate-50 border-b text-slate-600 font-bold">
+                    <th class="py-3 px-4">Fonctionnalité</th>
+                    <th class="py-3 px-4 text-emerald-700 font-black">BatiPilot CFO</th>
+                    <th class="py-3 px-4 text-slate-400">Logiciels BTP classiques</th>
+                    <th class="py-3 px-4 text-slate-400">ERP PME génériques</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                  <tr>
+                    <td class="py-3 px-4 font-semibold">Saisie Vocale Terrain (Devis & Dépenses)</td>
+                    <td class="py-3 px-4 text-emerald-600 font-bold">✔️ Intégré natif</td>
+                    <td class="py-3 px-4 text-amber-600">⚠️ Basique ou absent</td>
+                    <td class="py-3 px-4 text-red-500">❌ Non disponible</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 font-semibold">Suivi automatique de marge brute temps réel</td>
+                    <td class="py-3 px-4 text-emerald-600 font-bold">✔️ Instantané</td>
+                    <td class="py-3 px-4 text-amber-600">⚠️ Manuel / Différé</td>
+                    <td class="py-3 px-4 text-emerald-600">✔️ Disponible</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 font-semibold">Relances directes WhatsApp / Mail</td>
+                    <td class="py-3 px-4 text-emerald-600 font-bold">✔️ En 1 Clic direct</td>
+                    <td class="py-3 px-4 text-amber-600">⚠️ Email uniquement</td>
+                    <td class="py-3 px-4 text-amber-600">⚠️ Email uniquement</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 font-semibold">Format d'export de facturation standardisé</td>
+                    <td class="py-3 px-4 text-emerald-600 font-bold">✔️ PDF & Exports standard</td>
+                    <td class="py-3 px-4 text-emerald-600">✔️ Conforme</td>
+                    <td class="py-3 px-4 text-emerald-600">✔️ Conforme</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- MODALES SPÉCIFIQUES ET INTERACTIVES        -->
+  <!-- ========================================== -->
+
+  <!-- Slide-Over Détails Chantier -->
+  <div x-show="slideOverOpen" x-cloak class="relative z-50">
+    <div class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs" @click="slideOverOpen = false"></div>
+    <div class="fixed inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl p-6 overflow-y-auto space-y-6 flex flex-col justify-between border-l border-slate-200">
+      <div class="space-y-4">
+        <div class="flex items-center justify-between border-b pb-3">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Détails Chantier</span>
+            <h3 class="font-bold text-slate-900 text-base" x-text="selectedChantier?.nom"></h3>
+          </div>
+          <button type="button" @click="slideOverOpen = false" class="text-slate-400 hover:text-slate-600 p-1">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2">
+            <div class="flex justify-between"><span class="text-slate-500">Client :</span><strong class="text-slate-900" x-text="selectedChantier?.client"></strong></div>
+            <div class="flex justify-between"><span class="text-slate-500">Téléphone :</span><strong class="text-slate-900" x-text="selectedChantier?.telephoneClient || 'Non renseigné'"></strong></div>
+            <div class="flex justify-between"><span class="text-slate-500">Marché HT :</span><strong class="text-slate-900" x-text="formatCurrency(selectedChantier?.marche)"></strong></div>
+            <div class="flex justify-between"><span class="text-slate-500">Coût Réel engagé :</span><strong class="text-slate-900" x-text="formatCurrency(selectedChantier?.coutReel)"></strong></div>
+            <div class="flex justify-between"><span class="text-slate-500">Marge Brute :</span><strong :class="calculateMarge(selectedChantier) >= 30 ? 'text-emerald-600' : 'text-amber-600'" x-text="`${calculateMarge(selectedChantier)}%`"></strong></div>
+          </div>
+
+          <div class="space-y-1">
+            <label class="block text-slate-700 font-bold">Avancement du chantier (<span x-text="`${selectedChantier?.avancement || 0}%`"></span>)</label>
+            <input type="range" min="0" max="100" x-model.number="selectedChantier.avancement" @change="saveState()" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+          </div>
+
+          <div>
+            <h4 class="font-bold text-slate-800 uppercase text-[11px] mb-2 mt-4">Dépenses & Saisies Imputées</h4>
+            <div class="space-y-1 max-h-48 overflow-y-auto pr-1">
+              <template x-for="p in pointagesList.filter(item => item.chantierId === selectedChantier?.id)" :key="p.id">
+                <div class="p-2 bg-slate-50 rounded-lg border border-slate-100 flex justify-between items-center text-[11px]">
+                  <div>
+                    <span class="font-bold text-slate-800 block" x-text="p.libelle"></span>
+                    <span class="text-slate-400 text-[10px]" x-text="p.date"></span>
+                  </div>
+                  <span class="font-bold text-amber-700" x-text="formatCurrency(p.cost)"></span>
+                </div>
+              </template>
+              <template x-if="pointagesList.filter(item => item.chantierId === selectedChantier?.id).length === 0">
+                <p class="text-slate-400 text-[11px] italic">Aucune dépense enregistrée pour ce chantier.</p>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-200 flex gap-2">
+        <button type="button" @click="slideOverOpen = false" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Dictée Vocale -->
+  <div x-show="modalVoice" x-cloak class="relative z-50">
+    <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs" @click="closeVoiceModal()"></div>
+    <div class="fixed inset-0 p-4 flex justify-center items-center">
+      <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-4 border border-slate-200">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+            <i data-lucide="mic" class="w-4 h-4 text-red-500"></i>
+            <span>Dictée Vocale BatiPilot</span>
+          </h3>
+          <button type="button" @click="closeVoiceModal()" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+
+        <div class="text-center py-6 space-y-3">
+          <button type="button" @click="toggleDictation()" class="w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-all"
+                  :class="isListening ? 'bg-red-500 text-white animate-pulse-mic' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'">
+            <i data-lucide="mic" class="w-8 h-8"></i>
+          </button>
+          <p class="text-xs font-bold" :class="isListening ? 'text-red-600' : 'text-slate-500'"
+             x-text="isListening ? 'Écoute en cours... Dites vos instructions' : 'Cliquez sur le micro pour commencer à dicter'"></p>
+        </div>
+
+        <div class="bg-slate-50 p-3.5 rounded-2xl border text-xs min-h-[80px] space-y-1">
+          <span class="text-[10px] uppercase font-bold text-slate-400">Transcription vocale détectée :</span>
+          <p class="text-slate-800 italic font-medium" x-text="speechTranscript || 'Par exemple : « Achat de peinture pour 240 euros sur le chantier Dupont »'"></p>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" @click="closeVoiceModal()" class="px-3 py-2 text-xs font-semibold text-slate-500">Annuler</button>
+          <button type="button" @click="applyVoiceTranscription()" class="px-4 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs">Valider la saisie vocale</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal Relance Impayé -->
+  <div x-show="modalRelance" x-cloak class="relative z-50">
+    <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs" @click="modalRelance = false"></div>
+    <div class="fixed inset-0 p-4 flex justify-center items-center">
+      <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-4 border border-slate-200">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="font-bold text-slate-900 text-sm">Relance de Facture Impayée</h3>
+          <button type="button" @click="modalRelance = false" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-xl border text-xs space-y-1">
+          <div class="flex justify-between text-slate-600"><span>Facture :</span><strong x-text="selectedFactureRelance?.num"></strong></div>
+          <div class="flex justify-between text-slate-600"><span>Montant dû :</span><strong x-text="formatCurrency(selectedFactureRelance?.montant)"></strong></div>
+          <div class="flex justify-between text-slate-600"><span>Chantier :</span><span class="font-medium" x-text="getChantierName(selectedFactureRelance?.chantierId)"></span></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Message de relance</label>
+          <textarea rows="4" x-model="relanceMessage" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 resize-none"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <button type="button" @click="sendWhatsAppRelance()" class="py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs">
+            <i data-lucide="message-square" class="w-4 h-4"></i>
+            <span>WhatsApp Direct</span>
+          </button>
+          <button type="button" @click="sendEmailRelance()" class="py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-xs">
+            <i data-lucide="mail" class="w-4 h-4"></i>
+            <span>Envoyer par Email</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal Signature Tactile -->
+  <div x-show="modalSignature" x-cloak class="relative z-50">
+    <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs" @click="modalSignature = false"></div>
+    <div class="fixed inset-0 p-4 flex justify-center items-center">
+      <div class="w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 space-y-4 border border-slate-200">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="font-bold text-slate-900 text-sm">Signature Tactile du Devis</h3>
+          <button type="button" @click="modalSignature = false" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+
+        <p class="text-xs text-slate-500">Signez avec votre doigt ou votre souris dans la zone ci-dessous :</p>
+
+        <div class="border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50 relative overflow-hidden">
+          <canvas id="signatureCanvas" class="w-full h-40 cursor-crosshair" @mousedown="startDrawing" @mousemove="draw" @mouseup="stopDrawing" @touchstart="startDrawing" @touchmove="draw" @touchend="stopDrawing"></canvas>
+        </div>
+
+        <div class="flex justify-between items-center pt-2">
+          <button type="button" @click="clearCanvas()" class="text-xs text-slate-500 hover:text-slate-800 underline">Effacer la signature</button>
+          <div class="flex gap-2">
+            <button type="button" @click="modalSignature = false" class="px-3 py-2 text-xs font-semibold text-slate-500">Annuler</button>
+            <button type="button" @click="confirmSignatureAndCreate()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs">
+              Valider & Convertir en Chantier
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modal Nouveau Sous-traitant -->
+  <div x-show="modalNewST" x-cloak class="relative z-50">
+    <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs" @click="modalNewST = false"></div>
+    <div class="fixed inset-0 p-4 flex justify-center items-center">
+      <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-4 border border-slate-200">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="font-bold text-slate-900 text-sm">Ajouter un sous-traitant</h3>
+          <button type="button" @click="modalNewST = false" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="block text-slate-600 font-bold mb-1">Raison sociale</label>
+            <input type="text" x-model="formST.nom" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl" placeholder="ex: Elec Plus EURL">
+          </div>
+          <div>
+            <label class="block text-slate-600 font-bold mb-1">Corps d'état</label>
+            <input type="text" x-model="formST.metier" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl" placeholder="ex: Électricité">
+          </div>
+          <div>
+            <label class="block text-slate-600 font-bold mb-1">Chantier d'affectation</label>
+            <select x-model.number="formST.chantierId" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+              <template x-for="c in chantiersList" :key="c.id">
+                <option :value="c.id" x-text="c.nom"></option>
+              </template>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-600 font-bold mb-1">Montant contrat (€ HT)</label>
+            <input type="number" x-model.number="formST.montant" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl" placeholder="3200">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" @click="modalNewST = false" class="px-3 py-2 text-xs font-semibold text-slate-500">Annuler</button>
+          <button type="button" @click="addST()" class="px-4 py-2 text-xs font-bold bg-teal-600 hover:bg-teal-700 text-white rounded-xl shadow-xs">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Modals Nouveau Chantier, Facture, PDF -->
+  <div x-show="modalNewChantier" x-cloak class="relative z-50">
+    <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs" @click="modalNewChantier = false"></div>
+    <div class="fixed inset-0 p-4 flex justify-center items-center">
+      <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-4 border border-slate-200">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="font-bold text-slate-900 text-sm">Ajouter un Chantier</h3>
+          <button type="button" @click="modalNewChantier = false" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="space-y-3 text-xs">
+          <div><label class="block text-slate-600 font-bold mb-1">Nom du Chantier</label><input type="text" x-model="formChantier.nom" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"></div>
+          <div><label class="block text-slate-600 font-bold mb-1">Nom du Client</label><input type="text" x-model="formChantier.client" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"></div>
+          <div><label class="block text-slate-600 font-bold mb-1">Téléphone Client (Relance WhatsApp)</label><input type="text" x-model="formChantier.telephoneClient" placeholder="33600000000" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"></div>
+          <div><label class="block text-slate-600 font-bold mb-1">Marché HT (€)</label><input type="number" x-model.number="formChantier.marche" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"></div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" @click="modalNewChantier = false" class="px-3 py-2 text-xs font-semibold text-slate-500">Annuler</button>
+          <button type="button" @click="addChantier()" class="px-4 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-xs">Créer le chantier</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div x-show="modalNewFacture" x-cloak class="relative z-50">
+    <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs" @click="modalNewFacture = false"></div>
+    <div class="fixed inset-0 p-4 flex justify-center items-center">
+      <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-4 border border-slate-200">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="font-bold text-slate-900 text-sm">Émettre une Facture</h3>
+          <button type="button" @click="modalNewFacture = false" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="block text-slate-600 font-bold mb-1">Chantier concerné</label>
+            <select x-model.number="formFacture.chantierId" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+              <template x-for="c in chantiersList" :key="c.id">
+                <option :value="c.id" x-text="c.nom"></option>
+              </template>
+            </select>
+          </div>
+          <div><label class="block text-slate-600 font-bold mb-1">Montant Facturé HT (€)</label><input type="number" x-model.number="formFacture.montant" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl"></div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" @click="modalNewFacture = false" class="px-3 py-2 text-xs font-semibold text-slate-500">Annuler</button>
+          <button type="button" @click="addFacture()" class="px-4 py-2 text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-xs">Valider Facture</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div x-show="pdfModalOpen" x-cloak class="relative z-50">
+    <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs" @click="pdfModalOpen = false"></div>
+    <div class="fixed inset-0 p-4 flex justify-center items-center">
+      <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-4 border border-slate-200 text-center">
+        <i data-lucide="file-check" class="w-10 h-10 text-emerald-600 mx-auto"></i>
+        <h3 class="font-bold text-slate-900 text-base" x-text="pdfTitle"></h3>
+        <p class="text-xs text-slate-500">Rapport financier synthétique récapitulatif.</p>
+        <button type="button" @click="pdfModalOpen = false; showToast('Exportation du PDF réussie !')" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs">
+          Télécharger le document PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de notification -->
+  <div x-show="toast.visible" x-transition x-cloak class="fixed bottom-5 right-5 bg-slate-950 text-white px-4 py-3 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 z-50 border border-slate-800">
+    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+    <span x-text="toast.message"></span>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- MOTEUR APPLICATIF ALPINE.JS               -->
+  <!-- ========================================== -->
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('btpApp', () => ({
+        // Auth State
+        isLoggedIn: false,
+        authMode: 'login',
+        showAuthModal: false,
+        currentUser: null,
+        authForm: { companyName: '', email: '', password: '' },
+
+        // Navigation & Modals State
+        currentTab: 'cfo',
+        slideOverOpen: false,
+        pdfModalOpen: false,
+        pdfTitle: '',
+        modalNewChantier: false,
+        modalNewFacture: false,
+        modalNewST: false,
+        modalSignature: false,
+        modalRelance: false,
+        modalVoice: false,
+
+        selectedChantier: null,
+        selectedFactureRelance: null,
+        relanceMessage: '',
+        chartInstance: null,
+        isRefreshingBriefing: false,
+
+        // Dictée Vocale
+        speechRecognition: null,
+        isListening: false,
+        speechTranscript: '',
+        activeVoiceTarget: null,
+
+        // Canvas Signature
+        isDrawing: false,
+        canvasCtx: null,
+
+        toast: { visible: false, message: '' },
+
+        chantiersList: [],
+        pointagesList: [],
+        facturesList: [],
+        soustraitantsList: [],
+
+        formChantier: { nom: '', client: '', telephoneClient: '', marche: null },
+        formFacture: { chantierId: null, montant: null },
+        formPointage: { chantierId: null, libelle: '', heures: null, montantAchat: null },
+        formST: { nom: '', metier: '', chantierId: null, montant: null },
+        newDevis: { nom: '', client: '', description: '', marche: null, coutEstime: null },
+
+        get currentTabName() {
+          const map = { 
+            cfo: 'Tableau de bord', 
+            chantiers: 'Chantiers', 
+            devis: 'Devis', 
+            soustraitants: 'Sous-traitants', 
+            pointage: 'Pointage', 
+            facturation: 'Factures & Relances',
+            tarifs: 'Abonnements'
+          };
+          return map[this.currentTab];
+        },
+
+        get stats() {
+          const caPrevu = this.chantiersList.reduce((acc, c) => acc + (c.marche || 0), 0);
+          const caFacture = this.facturesList.reduce((acc, f) => acc + (f.montant || 0), 0);
+          const caEncaisse = this.facturesList.filter(f => f.payee).reduce((acc, f) => acc + (f.montant || 0), 0);
+          const totalCoutReel = this.chantiersList.reduce((acc, c) => acc + (c.coutReel || 0), 0);
+          
+          let totalMarge = 0;
+          if (this.chantiersList.length > 0) {
+            const sumMarges = this.chantiersList.reduce((acc, c) => acc + this.calculateMarge(c), 0);
+            totalMarge = Math.round(sumMarges / this.chantiersList.length);
+          }
+
+          return { caPrevu, caFacture, caEncaisse, totalCoutReel, margeMoyenne: totalMarge };
+        },
+
+        // Synthèse dynamique
+        get briefingIaContent() {
+          const stats = this.stats;
+          const pendingInvoices = this.facturesList.filter(f => !f.payee);
+          const uncompliantST = this.soustraitantsList.filter(s => !s.urssafOk);
+          const lowMarginChantiers = this.chantiersList.filter(c => this.calculateMarge(c) < 25);
+
+          let summary = `Portefeuille global de <strong>${this.formatCurrency(stats.caPrevu)}</strong> réparti sur <strong>${this.chantiersList.length} chantier(s)</strong>. `;
+          summary += `Marge brute projetée : <strong class="${stats.margeMoyenne >= 30 ? 'text-emerald-400' : 'text-amber-400'}">${stats.margeMoyenne}%</strong>. `;
+          
+          if (pendingInvoices.length > 0) {
+            const totalImpaye = pendingInvoices.reduce((a, f) => a + (f.montant || 0), 0);
+            summary += `Attention : <strong class="text-purple-400">${pendingInvoices.length} facture(s)</strong> en attente de paiement pour <strong>${this.formatCurrency(totalImpaye)}</strong>.`;
+          } else {
+            summary += `Flux de trésorerie optimal, aucune facture en retard de paiement.`;
+          }
+
+          const recommendations = [];
+
+          if (pendingInvoices.length > 0) {
+            recommendations.push({
+              id: 1,
+              title: '⚡ Relance Impayés WhatsApp',
+              detail: `${pendingInvoices.length} relance(s) prête(s) à être envoyée(s) en 1 clic.`
+            });
+          }
+
+          if (uncompliantST.length > 0) {
+            recommendations.push({
+              id: 2,
+              title: '🛡️ Pièces Sous-traitance',
+              detail: `${uncompliantST.length} sous-traitant(s) nécessite(nt) un renouvellement d'attestation.`
+            });
+          } else {
+            recommendations.push({
+              id: 2,
+              title: '✅ Pièces Administratives',
+              detail: 'Toutes les attestations réglementaires sont valides.'
+            });
+          }
+
+          if (lowMarginChantiers.length > 0) {
+            recommendations.push({
+              id: 3,
+              title: '📊 Alerte Marge Chantier',
+              detail: `${lowMarginChantiers.length} chantier(s) affiche(nt) une marge inférieure au seuil de 25%.`
+            });
+          } else {
+            recommendations.push({
+              id: 3,
+              title: '🚀 Seuil de Rentabilité',
+              detail: 'Tous vos chantiers dépassent les objectifs de marge brute.'
+            });
+          }
+
+          return { summary, recommendations };
+        },
+
+        init() {
+          this.checkAuthSession();
+          this.initSpeechRecognition();
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        // --- AUTH & SESSIONS DÉMO ---
+        checkAuthSession() {
+          const session = localStorage.getItem('btp_current_user');
+          if (session) {
+            this.currentUser = JSON.parse(session);
+            this.isLoggedIn = true;
+            this.loadUserData();
+          }
+        },
+
+        handleAuth() {
+          if (!this.authForm.email) return;
+
+          const user = {
+            id: btoa(this.authForm.email.toLowerCase()),
+            companyName: this.authForm.companyName || this.authForm.email.split('@')[0],
+            email: this.authForm.email
+          };
+
+          this.currentUser = user;
+          localStorage.setItem('btp_current_user', JSON.stringify(user));
+          this.isLoggedIn = true;
+          this.loadUserData();
+          this.showToast(`Bienvenue, ${user.companyName} !`);
+        },
+
+        loginAsDemo(email, companyName) {
+          this.authForm.email = email;
+          this.authForm.companyName = companyName;
+          this.authForm.password = 'demo1234';
+          this.handleAuth();
+        },
+
+        logout() {
+          localStorage.removeItem('btp_current_user');
+          this.isLoggedIn = false;
+          this.currentUser = null;
+          this.showToast('Déconnexion réussie.');
+        },
+
+        // --- PERSISTANCE EN LOCALSTORAGE ---
+        getUserStorageKey(key) {
+          const uid = this.currentUser ? this.currentUser.id : 'guest';
+          return `btp_data_${uid}_${key}`;
+        },
+
+        saveState() {
+          if (!this.isLoggedIn) return;
+          localStorage.setItem(this.getUserStorageKey('chantiers'), JSON.stringify(this.chantiersList));
+          localStorage.setItem(this.getUserStorageKey('pointages'), JSON.stringify(this.pointagesList));
+          localStorage.setItem(this.getUserStorageKey('factures'), JSON.stringify(this.facturesList));
+          localStorage.setItem(this.getUserStorageKey('st'), JSON.stringify(this.soustraitantsList));
+          this.updateChart();
+        },
+
+        loadUserData() {
+          const savedChantiers = localStorage.getItem(this.getUserStorageKey('chantiers'));
+          const savedPointages = localStorage.getItem(this.getUserStorageKey('pointages'));
+          const savedFactures = localStorage.getItem(this.getUserStorageKey('factures'));
+          const savedST = localStorage.getItem(this.getUserStorageKey('st'));
+
+          if (savedChantiers) {
+            this.chantiersList = JSON.parse(savedChantiers);
+            this.pointagesList = savedPointages ? JSON.parse(savedPointages) : [];
+            this.facturesList = savedFactures ? JSON.parse(savedFactures) : [];
+            this.soustraitantsList = savedST ? JSON.parse(savedST) : [];
+            
+            if (this.chantiersList.length > 0) {
+              const defaultId = this.chantiersList[0].id;
+              this.formPointage.chantierId = defaultId;
+              this.formFacture.chantierId = defaultId;
+              this.formST.chantierId = defaultId;
+            }
+          } else {
+            this.resetDemoData();
+          }
+
+          this.$nextTick(() => { 
+            this.initChart();
+            lucide.createIcons();
+          });
+        },
+
+        resetDemoData() {
+          this.chantiersList = [
+            { id: 1, nom: 'Rénovation SdB Dupont', client: 'M. Dupont', telephoneClient: '33612345678', avancement: 45, marche: 5687, coutReel: 1250 },
+            { id: 2, nom: 'Extension Villa Martin', client: 'Mme Martin', telephoneClient: '33698765432', avancement: 20, marche: 24500, coutReel: 8900 }
+          ];
+          this.pointagesList = [
+            { id: 101, date: new Date().toLocaleDateString('fr-FR'), libelle: 'Pose carrelage - 7h', chantierId: 1, cost: 294 }
+          ];
+          this.facturesList = [
+            { id: 201, num: 'FAC-2026-001', chantierId: 1, montant: 1706, payee: false }
+          ];
+          this.soustraitantsList = [
+            { id: 301, nom: 'Elec Express EURL', metier: 'Électricité', chantierId: 1, montant: 850, urssafOk: true }
+          ];
+          
+          if (this.chantiersList.length > 0) {
+            const defaultId = this.chantiersList[0].id;
+            this.formPointage.chantierId = defaultId;
+            this.formFacture.chantierId = defaultId;
+            this.formST.chantierId = defaultId;
+          }
+          this.saveState();
+        },
+
+        // --- PANNEAU SLIDE-OVER ---
+        openSlideOver(chantier) {
+          this.selectedChantier = chantier;
+          this.slideOverOpen = true;
+          this.$nextTick(() => lucide.createIcons());
+        },
+
+        // --- MOTEUR DE DICTÉE VOCALE ---
+        initSpeechRecognition() {
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (SpeechRecognition) {
+            this.speechRecognition = new SpeechRecognition();
+            this.speechRecognition.lang = 'fr-FR';
+            this.speechRecognition.continuous = true;
+            this.speechRecognition.interimResults = true;
+
+            this.speechRecognition.onresult = (event) => {
+              let transcript = '';
+              for (let i = event.resultIndex; i < event.results.length; ++i) {
+                transcript += event.results[i][0].transcript;
+              }
+              this.speechTranscript = transcript;
+              this.parseVoiceData(transcript);
+            };
+
+            this.speechRecognition.onerror = () => { this.isListening = false; };
+            this.speechRecognition.onend = () => { this.isListening = false; };
+          }
+        },
+
+        parseVoiceData(text) {
+          const amountMatch = text.match(/(\d+[\d\s,.]*)\s*(euros?|€|eur)/i);
+          const hoursMatch = text.match(/(\d+)\s*(heures?|h)/i);
+
+          if (amountMatch && this.activeVoiceTarget === 'pointageLibelle') {
+            this.formPointage.montantAchat = parseFloat(amountMatch[1].replace(',', '.'));
+          }
+          if (hoursMatch && this.activeVoiceTarget === 'pointageLibelle') {
+            this.formPointage.heures = parseInt(hoursMatch[1]);
+          }
+        },
+
+        openVoiceModal(target) {
+          this.activeVoiceTarget = target;
+          this.speechTranscript = '';
+          this.modalVoice = true;
+        },
+
+        closeVoiceModal() {
+          if (this.isListening && this.speechRecognition) {
+            this.speechRecognition.stop();
+          }
+          this.isListening = false;
+          this.modalVoice = false;
+        },
+
+        toggleDictation() {
+          if (!this.speechRecognition) {
+            this.showToast('Dictée vocale non supportée sur ce navigateur.');
+            return;
+          }
+
+          if (this.isListening) {
+            this.speechRecognition.stop();
+            this.isListening = false;
+          } else {
+            this.speechTranscript = '';
+            this.speechRecognition.start();
+            this.isListening = true;
+          }
+        },
+
+        startVoiceDictation(targetInputId) {
+          this.openVoiceModal(targetInputId);
+          this.toggleDictation();
+        },
+
+        applyVoiceTranscription() {
+          if (!this.speechTranscript) {
+            this.closeVoiceModal();
+            return;
+          }
+
+          if (this.activeVoiceTarget === 'devisDescription') {
+            this.newDevis.description = this.speechTranscript;
+          } else if (this.activeVoiceTarget === 'pointageLibelle') {
+            this.formPointage.libelle = this.speechTranscript;
+          }
+
+          this.showToast('Transcription appliquée !');
+          this.closeVoiceModal();
+        },
+
+        // --- RELANCES IMPAYÉS ---
+        openRelanceModal(facture) {
+          this.selectedFactureRelance = facture;
+          const client = this.getChantierName(facture.chantierId);
+          this.relanceMessage = `Bonjour,\n\nSauf erreur de notre part, la facture ${facture.num} d'un montant de ${this.formatCurrency(facture.montant)} pour le chantier ${client} reste en attente de règlement.\n\nMerci de procéder au virement.\n\nCordialement,\n${this.currentUser?.companyName}`;
+          this.modalRelance = true;
+        },
+
+        sendWhatsAppRelance() {
+          if (!this.selectedFactureRelance) return;
+          const phone = this.getChantierPhone(this.selectedFactureRelance.chantierId);
+          const text = encodeURIComponent(this.relanceMessage);
+          window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+          this.modalRelance = false;
+          this.showToast('Relance WhatsApp initialisée !');
+        },
+
+        sendEmailRelance() {
+          if (!this.selectedFactureRelance) return;
+          const subject = encodeURIComponent(`Relance Facture - ${this.selectedFactureRelance.num}`);
+          const body = encodeURIComponent(this.relanceMessage);
+          window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+          this.modalRelance = false;
+          this.showToast('Email de relance préparé !');
+        },
+
+        // --- GESTION DES DONNÉES ---
+        refreshBriefingIA() {
+          this.isRefreshingBriefing = true;
+          setTimeout(() => {
+            this.isRefreshingBriefing = false;
+            this.showToast('Synthèse réactualisée !');
+          }, 400);
+        },
+
+        closeAllModals() {
+          this.modalNewChantier = false;
+          this.modalNewFacture = false;
+          this.modalNewST = false;
+          this.modalSignature = false;
+          this.modalRelance = false;
+          this.modalVoice = false;
+          this.pdfModalOpen = false;
+          this.slideOverOpen = false;
+        },
+
+        calculateMarge(chantier) {
+          if (!chantier || !chantier.marche || chantier.marche === 0) return 0;
+          const marge = ((chantier.marche - (chantier.coutReel || 0)) / chantier.marche) * 100;
+          return Math.round(marge * 10) / 10;
+        },
+
+        formatCurrency(val) {
+          return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(val || 0);
+        },
+
+        getChantierName(id) {
+          const c = this.chantiersList.find(item => item.id === id);
+          return c ? c.nom : 'Chantier Général';
+        },
+
+        getChantierPhone(id) {
+          const c = this.chantiersList.find(item => item.id === id);
+          return (c && c.telephoneClient) ? c.telephoneClient : '33600000000';
+        },
+
+        // --- SIGNATURE TACTILE ---
+        openSignatureModal() {
+          if (!this.newDevis.nom || !this.newDevis.marche) {
+            this.showToast('Renseignez le nom et le montant du devis.');
+            return;
+          }
+          this.modalSignature = true;
+          this.$nextTick(() => { this.initCanvas(); });
+        },
+
+        initCanvas() {
+          const canvas = document.getElementById('signatureCanvas');
+          if (!canvas) return;
+          canvas.width = canvas.offsetWidth;
+          canvas.height = canvas.offsetHeight;
+          this.canvasCtx = canvas.getContext('2d');
+          this.canvasCtx.strokeStyle = '#0f172a';
+          this.canvasCtx.lineWidth = 2.5;
+        },
+
+        startDrawing(e) {
+          if (e.type.startsWith('touch')) e.preventDefault();
+          this.isDrawing = true;
+          const rect = e.target.getBoundingClientRect();
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          const x = clientX - rect.left;
+          const y = clientY - rect.top;
+          this.canvasCtx.beginPath();
+          this.canvasCtx.moveTo(x, y);
+        },
+
+        draw(e) {
+          if (!this.isDrawing) return;
+          if (e.type.startsWith('touch')) e.preventDefault();
+          const rect = e.target.getBoundingClientRect();
+          const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+          const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+          const x = clientX - rect.left;
+          const y = clientY - rect.top;
+          this.canvasCtx.lineTo(x, y);
+          this.canvasCtx.stroke();
+        },
+
+        stopDrawing() { this.isDrawing = false; },
+
+        clearCanvas() {
+          const canvas = document.getElementById('signatureCanvas');
+          if (canvas && this.canvasCtx) {
+            this.canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+          }
+        },
+
+        confirmSignatureAndCreate() {
+          const newChantierId = Date.now();
+          this.chantiersList.push({
+            id: newChantierId,
+            nom: this.newDevis.nom,
+            client: this.newDevis.client || 'Client Devis',
+            telephoneClient: '33600000000',
+            avancement: 0,
+            marche: this.newDevis.marche,
+            coutReel: this.newDevis.coutEstime || 0
+          });
+          
+          this.formPointage.chantierId = newChantierId;
+          this.formFacture.chantierId = newChantierId;
+          this.formST.chantierId = newChantierId;
+
+          this.newDevis = { nom: '', client: '', description: '', marche: null, coutEstime: null };
+          this.modalSignature = false;
+          this.saveState();
+          this.setTab('chantiers');
+          this.showToast('Devis signé et converti en chantier !');
+        },
+
+        // --- ACTIONS CRUD ---
+        addST() {
+          if (!this.formST.nom || !this.formST.montant) return;
+          const newST = {
+            id: Date.now(),
+            nom: this.formST.nom,
+            metier: this.formST.metier || 'Général',
+            chantierId: this.formST.chantierId || (this.chantiersList[0] ? this.chantiersList[0].id : null),
+            montant: this.formST.montant,
+            urssafOk: true
+          };
+
+          const chantier = this.chantiersList.find(c => c.id === newST.chantierId);
+          if (chantier) { chantier.coutReel += newST.montant; }
+
+          this.soustraitantsList.push(newST);
+          this.formST = { nom: '', metier: '', chantierId: this.chantiersList[0]?.id || null, montant: null };
+          this.modalNewST = false;
+          this.saveState();
+          this.showToast('Sous-traitant enregistré !');
+        },
+
+        deleteST(id) {
+          this.soustraitantsList = this.soustraitantsList.filter(s => s.id !== id);
+          this.saveState();
+          this.showToast('Sous-traitant retiré.');
+        },
+
+        addChantier() {
+          if (!this.formChantier.nom || !this.formChantier.marche) return;
+          const newId = Date.now();
+          this.chantiersList.push({
+            id: newId,
+            nom: this.formChantier.nom,
+            client: this.formChantier.client || 'Client',
+            telephoneClient: this.formChantier.telephoneClient || '33600000000',
+            avancement: 0,
+            marche: this.formChantier.marche,
+            coutReel: 0
+          });
+          
+          this.formPointage.chantierId = newId;
+          this.formFacture.chantierId = newId;
+          this.formST.chantierId = newId;
+
+          this.formChantier = { nom: '', client: '', telephoneClient: '', marche: null };
+          this.modalNewChantier = false;
+          this.saveState();
+          this.showToast('Chantier ajouté !');
+        },
+
+        deleteChantier(id) {
+          this.chantiersList = this.chantiersList.filter(c => c.id !== id);
+          if (this.selectedChantier && this.selectedChantier.id === id) {
+            this.selectedChantier = null;
+            this.slideOverOpen = false;
+          }
+          this.saveState();
+          this.showToast('Chantier supprimé.');
+        },
+
+        submitPointage() {
+          const chantier = this.chantiersList.find(c => c.id === this.formPointage.chantierId);
+          if (!chantier) { this.showToast('Sélectionnez un chantier.'); return; }
+
+          let cost = 0;
+          if (this.formPointage.heures) cost += this.formPointage.heures * 42;
+          if (this.formPointage.montantAchat) cost += this.formPointage.montantAchat;
+          if (cost === 0) return;
+
+          chantier.coutReel += cost;
+          this.pointagesList.unshift({
+            id: Date.now(),
+            date: new Date().toLocaleDateString('fr-FR'),
+            libelle: this.formPointage.libelle || 'Saisie de terrain',
+            chantierId: chantier.id,
+            cost: cost
+          });
+
+          this.formPointage = { chantierId: this.chantiersList[0]?.id || null, libelle: '', heures: null, montantAchat: null };
+          this.saveState();
+          this.showToast(`Dépense imputée au chantier (${cost} €) !`);
+        },
+
+        addFacture() {
+          if (!this.formFacture.chantierId || !this.formFacture.montant) return;
+          this.facturesList.push({
+            id: Date.now(),
+            num: `FAC-2026-00${this.facturesList.length + 1}`,
+            chantierId: this.formFacture.chantierId,
+            montant: this.formFacture.montant,
+            payee: false
+          });
+          this.formFacture = { chantierId: this.chantiersList[0]?.id || null, montant: null };
+          this.modalNewFacture = false;
+          this.saveState();
+          this.showToast('Facture émise !');
+        },
+
+        toggleFactureStatut(facture) {
+          facture.payee = !facture.payee;
+          this.saveState();
+          this.showToast(facture.payee ? 'Facture encaissée !' : 'Facture marquée en attente.');
+        },
+
+        deleteFacture(id) {
+          this.facturesList = this.facturesList.filter(f => f.id !== id);
+          this.saveState();
+        },
+
+        calculateDevisMarge() {
+          if (!this.newDevis.marche || !this.newDevis.coutEstime) return 0;
+          return Math.round(((this.newDevis.marche - this.newDevis.coutEstime) / this.newDevis.marche) * 100);
+        },
+
+        openPdfModal(title) {
+          this.pdfTitle = title;
+          this.pdfModalOpen = true;
+        },
+
+        setTab(tab) {
+          this.currentTab = tab;
+          this.$nextTick(() => { 
+            lucide.createIcons();
+            if (tab === 'cfo') this.updateChart();
+          });
+        },
+
+        showToast(msg) {
+          this.toast.message = msg;
+          this.toast.visible = true;
+          setTimeout(() => { this.toast.visible = false; }, 3000);
+        },
+
+        // --- DATAVIZ CHART.JS ---
+        initChart() {
+          const ctx = document.getElementById('cashflowChart');
+          if (!ctx) return;
+          if (this.chartInstance) {
+            this.chartInstance.destroy();
+            this.chartInstance = null;
+          }
+
+          this.chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+              datasets: [
+                {
+                  label: 'CA Facturé (€)',
+                  data: [12000, 19000, 15000, 22000, 28000, this.stats.caFacture],
+                  borderColor: '#10b981',
+                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                  fill: true,
+                  tension: 0.4
+                },
+                {
+                  label: 'Coûts Chantiers (€)',
+                  data: [8000, 11000, 9500, 14000, 18000, this.stats.totalCoutReel],
+                  borderColor: '#6366f1',
+                  backgroundColor: 'transparent',
+                  tension: 0.4
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom' } },
+              scales: { y: { beginAtZero: true } }
+            }
+          });
+        },
+
+        updateChart() {
+          if (!this.chartInstance) {
+            this.initChart();
+            return;
+          }
+          this.chartInstance.data.datasets[0].data[5] = this.stats.caFacture;
+          this.chartInstance.data.datasets[1].data[5] = this.stats.totalCoutReel;
+          this.chartInstance.update();
+        }
+      }));
+    });
+  </script>
+</body>
+</html>
