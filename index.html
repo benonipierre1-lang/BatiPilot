@@ -63,7 +63,7 @@
       <div class="lg:col-span-7 space-y-6 text-left">
         <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
           <i data-lucide="mic" class="w-4 h-4"></i>
-          <span>Assistant vocal & Pilotage de chantier</span>
+          <span>Dictée vocale & Pilotage de chantier</span>
         </div>
 
         <h1 class="text-4xl lg:text-6xl font-black text-white leading-tight tracking-tight">
@@ -165,7 +165,7 @@
           </div>
           <div>
             <h1 class="font-bold text-white text-base leading-none">BatiPilot</h1>
-            <p class="text-[10px] text-emerald-400 font-medium mt-1 uppercase tracking-wider">Pilotage Financial & Voice</p>
+            <p class="text-[10px] text-emerald-400 font-medium mt-1 uppercase tracking-wider">Pilotage Financier & Dictée</p>
           </div>
         </div>
 
@@ -237,7 +237,7 @@
         <button type="button" @click="resetDemoData()" class="w-full p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-[11px] text-slate-400 hover:text-white flex items-center justify-between transition">
           <span class="flex items-center gap-1.5">
             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-            <span>Réinitialiser la démo</span>
+            <span>Réinitialiser les données</span>
           </span>
         </button>
 
@@ -299,9 +299,9 @@
               <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">BTP CFO — Suivi Financier</span>
               <h2 class="text-2xl font-black text-slate-900 mt-0.5">Tableau de bord de rentabilité</h2>
             </div>
-            <button type="button" @click="refreshBriefingIA()" class="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-xs">
+            <button type="button" @click="refreshBriefing()" class="flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-bold px-3.5 py-2 rounded-xl transition shadow-xs">
               <i data-lucide="refresh-cw" class="w-4 h-4 text-emerald-600" :class="isRefreshingBriefing ? 'animate-spin' : ''"></i>
-              <span>Actualiser le Synthèse</span>
+              <span>Actualiser la Synthèse</span>
             </button>
           </div>
 
@@ -316,11 +316,11 @@
             </div>
 
             <div class="text-sm leading-relaxed text-slate-200">
-              <p x-html="briefingIaContent.summary"></p>
+              <p x-html="briefingContent.summary"></p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-              <template x-for="rec in briefingIaContent.recommendations" :key="rec.id">
+              <template x-for="rec in briefingContent.recommendations" :key="rec.id">
                 <div class="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 text-xs space-y-1">
                   <span class="font-bold text-emerald-400 block" x-text="rec.title"></span>
                   <p class="text-slate-400 text-[11px]" x-text="rec.detail"></p>
@@ -1146,6 +1146,8 @@
   <!-- MOTEUR APPLICATIF ALPINE.JS               -->
   <!-- ========================================== -->
   <script>
+    const API_URL = "https://batipilot-dp2z.onrender.com";
+
     document.addEventListener('alpine:init', () => {
       Alpine.data('btpApp', () => ({
         // Auth State
@@ -1225,7 +1227,7 @@
         },
 
         // Synthèse dynamique
-        get briefingIaContent() {
+        get briefingContent() {
           const stats = this.stats;
           const pendingInvoices = this.facturesList.filter(f => !f.payee);
           const uncompliantST = this.soustraitantsList.filter(s => !s.urssafOk);
@@ -1515,7 +1517,7 @@
         },
 
         // --- GESTION DES DONNÉES ---
-        refreshBriefingIA() {
+        refreshBriefing() {
           this.isRefreshingBriefing = true;
           setTimeout(() => {
             this.isRefreshingBriefing = false;
