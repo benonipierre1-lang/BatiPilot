@@ -61,11 +61,11 @@
         </div>
 
         <h1 class="text-4xl lg:text-6xl font-black text-white leading-tight tracking-tight">
-          Pilotez la rentabilité de vos chantiers à la <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">Voix et au Quotidien</span>[cite: 6].
+          Pilotez la rentabilité de vos chantiers à la <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">Voix et au Quotidien</span>.
         </h1>
 
         <p class="text-slate-300 text-sm lg:text-base leading-relaxed max-w-2xl">
-          Connectez votre espace professionnel pour dicter vos dépenses, suivre vos marges brutes en temps réel sur tous les navigateurs (Chrome, Opera, Edge)[cite: 6].
+          Connectez votre espace professionnel pour dicter vos dépenses, suivre vos marges brutes en temps réel sur tous les navigateurs (Chrome, Opera, Edge).
         </p>
       </div>
 
@@ -190,9 +190,11 @@
       </header>
 
       <div class="p-8 max-w-7xl mx-auto w-full space-y-6 flex-1">
-        <!-- Contenu des onglets -->
+        <!-- ONGLET CFO -->
         <section x-show="currentTab === 'cfo'" x-cloak class="space-y-6">
-          <h2 class="text-2xl font-black text-slate-900">Tableau de bord de rentabilité</h2>
+          <div class="flex justify-between items-center">
+            <h2 class="text-2xl font-black text-slate-900">Tableau de bord de rentabilité</h2>
+          </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
               <p class="text-xs font-bold text-slate-400 uppercase">CA Prévu</p>
@@ -206,6 +208,46 @@
               <p class="text-xs font-bold text-slate-400 uppercase">Dépenses engagées</p>
               <p class="text-2xl font-black text-slate-900 mt-2" x-text="formatCurrency(stats.totalCoutReel)"></p>
             </div>
+          </div>
+        </section>
+
+        <!-- ONGLET CHANTIERS -->
+        <section x-show="currentTab === 'chantiers'" x-cloak class="space-y-6">
+          <h2 class="text-2xl font-black text-slate-900">Gestion des Chantiers</h2>
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 text-center text-slate-500">
+            Aucun chantier enregistré pour le moment. Utilisez la dictée vocale ou ajoutez votre premier chantier.
+          </div>
+        </section>
+
+        <!-- ONGLET DEVIS -->
+        <section x-show="currentTab === 'devis'" x-cloak class="space-y-6">
+          <h2 class="text-2xl font-black text-slate-900">Devis & Signatures</h2>
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 text-center text-slate-500">
+            Aucun devis en cours.
+          </div>
+        </section>
+
+        <!-- ONGLET SOUS-TRAITANTS -->
+        <section x-show="currentTab === 'soustraitants'" x-cloak class="space-y-6">
+          <h2 class="text-2xl font-black text-slate-900">Sous-traitants & Conformité</h2>
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 text-center text-slate-500">
+            Aucun sous-traitant enregistré.
+          </div>
+        </section>
+
+        <!-- ONGLET POINTAGE -->
+        <section x-show="currentTab === 'pointage'" x-cloak class="space-y-6">
+          <h2 class="text-2xl font-black text-slate-900">Pointage & Dépenses</h2>
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 text-center text-slate-500">
+            Aucune dépense pointée.
+          </div>
+        </section>
+
+        <!-- ONGLET FACTURATION -->
+        <section x-show="currentTab === 'facturation'" x-cloak class="space-y-6">
+          <h2 class="text-2xl font-black text-slate-900">Facturation & Relances</h2>
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 text-center text-slate-500">
+            Aucune facture émise.
           </div>
         </section>
       </div>
@@ -268,8 +310,6 @@
         mediaRecorder: null,
         audioChunks: [],
         toast: { visible: false, message: '' },
-        
-        // Données initiales totalement nettoyées (vide à l'inscription)
         chantiersList: [],
         pointagesList: [],
         facturesList: [],
@@ -278,7 +318,10 @@
           return { caPrevu: 0, margeMoyenne: 0, totalCoutReel: 0 };
         },
 
-        get currentTabName() { return 'Tableau de bord'; },
+        get currentTabName() {
+          const names = { cfo: 'Tableau de bord', chantiers: 'Chantiers', devis: 'Devis', soustraitants: 'Sous-traitants', pointage: 'Pointage', facturation: 'Facturation' };
+          return names[this.currentTab] || 'Tableau de bord';
+        },
 
         init() {
           this.checkAuthSession();
@@ -347,12 +390,10 @@
           this.modalVoice = false;
         },
 
-        // DICTÉE UNIVERSELLE (Compatible Chrome & Opera via MediaRecorder et backend Render)
         async toggleDictationUniversal() {
           const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
           
           if (SpeechRecognition && !navigator.userAgent.includes("OPR")) {
-            // Mode natif Chrome / Edge
             if (this.isListening) {
               this.isListening = false;
             } else {
@@ -364,7 +405,6 @@
               this.isListening = true;
             }
           } else {
-            // Mode universel / Opera (Enregistrement audio et envoi réel au backend Render /transcribe)
             if (this.isListening) {
               this.mediaRecorder.stop();
               this.isListening = false;
@@ -375,7 +415,6 @@
                 this.audioChunks = [];
                 this.mediaRecorder.ondataavailable = (e) => this.audioChunks.push(e.data);
                 
-                // Appel réel vers la route /transcribe de ton backend FastAPI sur Render
                 this.mediaRecorder.onstop = async () => {
                   const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
                   const formData = new FormData();
