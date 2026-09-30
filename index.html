@@ -61,11 +61,11 @@
         </div>
 
         <h1 class="text-4xl lg:text-6xl font-black text-white leading-tight tracking-tight">
-          Pilotez la rentabilité de vos chantiers à la <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">Voix et au Quotidien</span>.
+          Pilotez la rentabilité de vos chantiers à la <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">Voix et au Quotidien</span>[cite: 6].
         </h1>
 
         <p class="text-slate-300 text-sm lg:text-base leading-relaxed max-w-2xl">
-          Connectez votre espace professionnel pour dicter vos dépenses, suivre vos marges brutes en temps réel sur tous les navigateurs (Chrome, Opera, Edge).
+          Connectez votre espace professionnel pour dicter vos dépenses, suivre vos marges brutes en temps réel sur tous les navigateurs (Chrome, Opera, Edge)[cite: 6].
         </p>
       </div>
 
@@ -268,14 +268,14 @@
         mediaRecorder: null,
         audioChunks: [],
         toast: { visible: false, message: '' },
-        chantiersList: [
-          { id: 1, nom: 'Rénovation SdB Dupont', client: 'M. Dupont', avancement: 45, marche: 5687, coutReel: 1250 }
-        ],
+        
+        // Données initiales totalement nettoyées (vide à l'inscription)
+        chantiersList: [],
         pointagesList: [],
         facturesList: [],
 
         get stats() {
-          return { caPrevu: 30187, margeMoyenne: 71, totalCoutReel: 10150 };
+          return { caPrevu: 0, margeMoyenne: 0, totalCoutReel: 0 };
         },
 
         get currentTabName() { return 'Tableau de bord'; },
@@ -347,7 +347,7 @@
           this.modalVoice = false;
         },
 
-        // DICTÉE UNIVERSELLE (Compatible Chrome & Opera via MediaRecorder et backend Render)[cite: 10]
+        // DICTÉE UNIVERSELLE (Compatible Chrome & Opera via MediaRecorder et backend Render)
         async toggleDictationUniversal() {
           const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
           
@@ -364,7 +364,7 @@
               this.isListening = true;
             }
           } else {
-            // Mode universel / Opera (Enregistrement audio et envoi réel au backend Render /transcribe)[cite: 10]
+            // Mode universel / Opera (Enregistrement audio et envoi réel au backend Render /transcribe)
             if (this.isListening) {
               this.mediaRecorder.stop();
               this.isListening = false;
@@ -375,7 +375,7 @@
                 this.audioChunks = [];
                 this.mediaRecorder.ondataavailable = (e) => this.audioChunks.push(e.data);
                 
-                // Appel réel vers la route /transcribe de ton backend FastAPI sur Render[cite: 10]
+                // Appel réel vers la route /transcribe de ton backend FastAPI sur Render
                 this.mediaRecorder.onstop = async () => {
                   const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
                   const formData = new FormData();
