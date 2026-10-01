@@ -3,10 +3,11 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 import urllib.parse
 import jwt
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status, File, UploadFile
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
+import shutil
 from sqlalchemy import (
     Boolean,
     Column,
@@ -21,7 +22,7 @@ from sqlalchemy.orm import Session, declarative_base, relationship, sessionmaker
 # --- CONFIGURATION BASE DE DONNÉES (Compatible SQLite / PostgreSQL) ---
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./batipilot.db")
 
-# Fix pour la compatibilité Render/Heroku avec PostgreSQL (postgres:// -> postgresql://)
+# Fix pour la compatibilité Render/Heroku avec PostgreSQL (postgres:// -> postgresql://)[cite: 11, 12]
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
@@ -33,7 +34,7 @@ Base = declarative_base()
 # --- CONFIGURATION SÉCURITÉ & JWT ---
 SECRET_KEY = os.getenv("SECRET_KEY", "cle_secrete_temporaire_batipilot_2026")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 heures
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 heures[cite: 11, 12]
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
@@ -153,6 +154,9 @@ class FactureResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class RelancePayload(BaseModel):
+    canal: str
+
 
 # --- FONCTIONS UTILITAIRES & SÉCURITÉ ---
 
@@ -206,6 +210,26 @@ app = FastAPI(
 )
 
 
+# --- ROUTE TRANSCRIBE (COMPATIBILITÉ OPERA / UNIVERSEL) ---
+
+@app.post("/transcribe")
+async def transcribe_audio(file: UploadFile = File(...)):
+    temp_file_path = f"temp_{file.filename}"
+    try:
+        with open(temp_file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Traitement audio (simulé ou intégration Whisper ici)
+        texte_transcrit = "Achat de matériel pour 240 euros sur le chantier"
+        
+        return {"text": texte_transcrit}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+
+
 # --- ROUTE AUTHENTIFICATION ---
 
 @app.post("/auth/register", response_model=EntrepriseResponse)
@@ -239,7 +263,6 @@ def connecter_entreprise(
 
 # --- ROUTES SÉCURISÉES & PAGINÉES ---
 
-# 1. Chantiers
 @app.get("/chantiers/", response_model=List[ChantierResponse])
 def lister_chantiers(
     limit: int = 10, 
@@ -267,8 +290,6 @@ def creer_chantier(
     db.refresh(db_chantier)
     return db_chantier
 
-
-# 2. Sous-traitants
 @app.get("/soustraitants/", response_model=List[SousTraitantResponse])
 def lister_soustraitants(
     limit: int = 10, 
@@ -300,16 +321,12 @@ def ajouter_soustraitant(
 
     db_st = SousTraitantDB(**st.model_dump(), entreprise_id=entreprise.id)
     db.add(db_st)
-    
-    # Impact financier automatique
     chantier.cout_reel += st.montant
 
     db.commit()
     db.refresh(db_st)
     return db_st
 
-
-# 3. Factures
 @app.get("/factures/", response_model=List[FactureResponse])
 def lister_factures(
     limit: int = 10, 
@@ -362,7 +379,6 @@ def relancer_impaye(facture_id: int, payload: RelancePayload, db: Session = Depe
     nom_chantier = chantier.nom if chantier else "Chantier"
     nom_client = chantier.client if chantier else "Client"
 
-    # 1. Construction du texte récapitulatif
     texte_message = (
         f"Bonjour {nom_client},\n\n"
         f"Sauf erreur de notre part, la facture *{facture.num}* "
@@ -372,9 +388,7 @@ def relancer_impaye(facture_id: int, payload: RelancePayload, db: Session = Depe
         f"Cordialement,\nL'équipe BatiPilot"
     )
 
-    # 2. Génération du lien WhatsApp sécurisé
     texte_encode = urllib.parse.quote(texte_message)
-    # Remplacer le numéro ci-dessous par le téléphone du client en prod
     telephone_client = "33600000000" 
     whatsapp_url = f"https://wa.me/{telephone_client}?text={texte_encode}"
 
