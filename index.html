@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" class="h-full bg-slate-900">
+<html lang="fr" class="h-full bg-slate-100">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,22 +14,29 @@
     [x-cloak] { display: none !important; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
     .light-glow-effect {
-      background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.08), transparent 40%),
-                  radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.06), transparent 40%);
+      background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.05), transparent 40%),
+                  radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.04), transparent 40%);
     }
 
-    .auth-bg-glow {
-      background: radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.15), transparent 50%),
-                  radial-gradient(circle at 10% 80%, rgba(59, 130, 246, 0.1), transparent 40%);
+    .pub-bg {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     }
 
-    .card-light-glow {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
-      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3), 0 0 25px 2px rgba(16, 185, 129, 0.12);
+    .pub-nav {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .pub-card, .auth-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     }
 
     @keyframes pulseMic {
@@ -39,156 +46,312 @@
     .animate-pulse-mic { animation: pulseMic 1.2s infinite alternate; }
     canvas { touch-action: none; }
   </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'DM Sans', system-ui, sans-serif; color: #1e293b; }
+    .font-display { font-family: 'Bricolage Grotesque', 'DM Sans', sans-serif; letter-spacing: -.02em; }
+  </style>
+  <script>
+    window.addEventListener('load', function() { 
+      if (window.Chart) { 
+        Chart.defaults.color = '#475569'; 
+        Chart.defaults.borderColor = 'rgba(203, 213, 225, 0.5)'; 
+      } 
+    });
+  </script>
 </head>
 
-<body class="h-full font-sans antialiased text-slate-800 bg-slate-900" x-data="btpApp()" @keydown.escape.window="closeAllModals()">
+<body class="h-full font-sans antialiased text-slate-800 bg-slate-100" x-data="btpApp()" @keydown.escape.window="closeAllModals()">
 
-  <!-- 1. PAGE DE CONNEXION AVEC CODE DE SÉCURITÉ ENVOYÉ PAR MAIL -->
-  <div x-show="!isAuthenticated" x-cloak class="fixed inset-0 z-50 bg-slate-950 flex flex-col lg:flex-row overflow-y-auto auth-bg-glow">
-    <div class="lg:w-1/2 p-8 lg:p-16 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800/80">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center font-black text-slate-950 text-2xl shadow-lg shadow-emerald-500/20">B</div>
-        <span class="text-white font-extrabold text-lg tracking-tight">BatiPilot <span class="text-emerald-400">CFO</span></span>
-      </div>
-      <div class="space-y-6 my-auto py-12">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-extrabold">
-          <i data-lucide="shield-check" class="w-4 h-4"></i>
-          <span>Double Authentification & Sécurité Bancaire</span>
-        </div>
-        <h1 class="text-3xl lg:text-5xl font-black text-white leading-tight">La maîtrise financière de votre entreprise du BTP.</h1>
-        <p class="text-sm text-slate-400 leading-relaxed">
-          Connexion ultra-sécurisée avec validation par code envoyé par e-mail pour protéger vos chantiers et votre trésorerie.
-        </p>
-      </div>
-      <div class="text-xs text-slate-500 flex flex-col gap-1">
-        <p>© 2026 BatiPilot Technologies. Tous droits réservés.</p>
-        <p class="text-slate-600">Conforme aux réglementations européennes de protection des données.</p>
-      </div>
-    </div>
+  <!-- SITE PUBLIC : ACCUEIL / CONNEXION / DÉMO / TARIFS -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#10b981"/>
+        <stop offset="1" stop-color="#0d9488"/>
+      </linearGradient>
+    </defs>
+    <symbol id="bp-logo" viewBox="0 0 40 40">
+      <rect width="40" height="40" rx="11" fill="url(#lg)"/>
+      <path d="M9 29V16l11-7 11 7v13" fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="M15 29v-5M20 29v-9M25 29v-6" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+  </svg>
 
-    <div class="lg:w-1/2 p-8 lg:p-16 flex items-center justify-center">
-      <div class="w-full max-w-md card-light-glow border border-slate-200/80 rounded-3xl p-8 space-y-6">
-        
-        <!-- ÉTAPE 1 : IDENTIFIANTS -->
-        <template x-if="!otpStep">
-          <div class="space-y-6">
-            <div class="flex p-1 bg-slate-200/70 rounded-2xl border border-slate-300">
-              <button type="button" @click="authMode = 'login'" :class="authMode === 'login' ? 'bg-slate-900 text-white font-black shadow-md' : 'text-slate-700 hover:text-slate-900 font-bold'" class="flex-1 py-2.5 rounded-xl text-xs transition">Espace Client</button>
-              <button type="button" @click="authMode = 'register'" :class="authMode === 'register' ? 'bg-slate-900 text-white font-black shadow-md' : 'text-slate-700 hover:text-slate-900 font-bold'" class="flex-1 py-2.5 rounded-xl text-xs transition">Créer un compte</button>
-            </div>
+  <div x-show="!isAuthenticated" x-cloak class="fixed inset-0 z-50 overflow-y-auto pub-bg">
+    <div class="min-h-full flex flex-col" x-data="{
+      view:'home', page:'about', sent:false,
+      demo:{name:'',company:'',email:'',phone:'',message:''},
+      pages:{
+        about:{t:'À propos de BatiPilot', p:'BatiPilot aide les dirigeants et artisans du BTP à savoir, chantier par chantier, s\'ils gagnent vraiment de l\'argent. Devis, coûts, sous-traitants, factures et relances : tout est au même endroit, et vous pouvez dicter vos dépenses depuis le chantier.'},
+        careers:{t:'Carrières', p:'Nous ne recrutons pas pour le moment. Si vous êtes passionné par le BTP et la tech, écrivez-nous via le formulaire de contact : nous gardons chaque candidature.'},
+        api:{t:'Documentation API', p:'L\'API BatiPilot est en préparation et sera incluse dans l\'offre Business. Réservez une démo pour être prévenu dès son ouverture.'}
+      },
+      nav(v,p){ this.view=v; if(p) this.page=p; this.sent=false; this.$el.parentElement.scrollTo(0,0); },
+      submitDemo(){ try{ const k='batipilot_demo_requests'; const a=JSON.parse(localStorage.getItem(k)||'[]'); a.push({...this.demo,date:new Date().toISOString()}); localStorage.setItem(k,JSON.stringify(a)); }catch(e){} this.sent=true; }
+    }">
 
-            <form x-show="authMode === 'login'" @submit.prevent="requestOtpCode()" class="space-y-4 text-xs">
-              <h2 class="text-lg font-black text-slate-900">Connexion sécurisée</h2>
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Email professionnel</label>
-                <input type="email" x-model="loginForm.email" placeholder="nom@entreprise-btp.fr" required class="w-full p-3 bg-white border border-slate-300 text-slate-900 rounded-xl focus:border-emerald-500 focus:outline-hidden">
-              </div>
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Mot de passe</label>
-                <input type="password" x-model="loginForm.password" placeholder="••••••••" required class="w-full p-3 bg-white border border-slate-300 text-slate-900 rounded-xl focus:border-emerald-500 focus:outline-hidden">
-              </div>
-              <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl transition shadow-md">Recevoir mon code de sécurité</button>
-            </form>
-
-            <form x-show="authMode === 'register'" @submit.prevent="requestOtpCode()" class="space-y-4 text-xs" x-cloak>
-              <h2 class="text-lg font-black text-slate-900">Inscription Pro</h2>
-              <p class="text-slate-500 text-[11px]">8 caractères min., 1 majuscule, 1 chiffre, 1 caractère spécial.</p>
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Raison sociale / Entreprise</label>
-                <input type="text" x-model="registerForm.company" placeholder="Ex: Martin Rénovation" required class="w-full p-3 bg-white border border-slate-300 text-slate-900 rounded-xl focus:border-emerald-500 focus:outline-hidden">
-              </div>
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Email professionnel</label>
-                <input type="email" x-model="registerForm.email" placeholder="contact@martin-renov.fr" required class="w-full p-3 bg-white border border-slate-300 text-slate-900 rounded-xl focus:border-emerald-500 focus:outline-hidden">
-              </div>
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Mot de passe sécurisé</label>
-                <input type="password" x-model="registerForm.password" placeholder="Ex: Bati#2026" required class="w-full p-3 bg-white border border-slate-300 text-slate-900 rounded-xl focus:border-emerald-500 focus:outline-hidden">
-              </div>
-              <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl transition shadow-md">S'inscrire & envoyer le code</button>
-            </form>
+      <!-- EN-TÊTE -->
+      <header class="sticky top-0 z-20 pub-nav">
+        <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-6">
+          <button type="button" @click="nav('home')" class="flex items-center gap-2.5">
+            <svg class="w-9 h-9"><use href="#bp-logo"/></svg>
+            <span class="font-display text-xl font-extrabold text-slate-900">BatiPilot</span>
+          </button>
+          <nav class="hidden lg:flex items-center gap-7 text-sm font-medium text-slate-600">
+            <button type="button" @click="nav('page','about')" class="hover:text-emerald-600">À propos</button>
+            <button type="button" @click="nav('page','careers')" class="hover:text-emerald-600">Carrières</button>
+            <button type="button" @click="nav('page','api')" class="hover:text-emerald-600">Documentation API</button>
+            <button type="button" @click="nav('demo')" class="hover:text-emerald-600">Contact</button>
+            <button type="button" @click="nav('pricing')" class="hover:text-emerald-600">Tarifs</button>
+          </nav>
+          <div class="flex items-center gap-2 text-sm">
+            <button type="button" @click="authMode='login'; otpStep=false; nav('login')" class="px-4 py-2 rounded-lg font-semibold text-slate-700 hover:text-slate-900">Se connecter</button>
+            <button type="button" @click="nav('demo')" class="px-4 py-2 rounded-lg font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-xs">Réserver une démo</button>
           </div>
-        </template>
+        </div>
+      </header>
 
-        <!-- ÉTAPE 2 : SAISIE DU CODE REÇU PAR MAIL -->
-        <template x-if="otpStep">
-          <form @submit.prevent="verifyOtpCode()" class="space-y-4 text-xs">
-            <div class="text-center space-y-2">
-              <div class="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto">
-                <i data-lucide="mail" class="w-6 h-6"></i>
+      <main class="flex-1">
+        <!-- ACCUEIL -->
+        <section x-show="view==='home'" class="max-w-6xl mx-auto px-5 pt-14 pb-20">
+          <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+              <h1 class="font-display text-4xl lg:text-6xl font-extrabold text-slate-900 leading-[1.05]">Sachez ce que rapporte chaque chantier, avant qu'il ne soit fini.</h1>
+              <p class="text-slate-600 text-base lg:text-lg leading-relaxed max-w-lg">Devis signés, coûts réels, sous-traitants en règle, factures relancées : BatiPilot suit votre rentabilité en temps réel et vous laisse dicter vos dépenses depuis le chantier.</p>
+              <div class="flex flex-wrap gap-3 pt-2">
+                <button type="button" @click="nav('demo')" class="px-6 py-3.5 rounded-xl font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-sm">Réserver une démo</button>
+                <button type="button" @click="authMode='register'; otpStep=false; nav('login')" class="px-6 py-3.5 rounded-xl font-bold border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 shadow-xs">Créer un compte</button>
               </div>
-              <h2 class="text-lg font-black text-slate-900">Vérification par e-mail</h2>
-              <p class="text-slate-500">Un code de sécurité à 6 chiffres vient d'être envoyé à <strong class="text-slate-800" x-text="loginForm.email || registerForm.email"></strong>.</p>
-              <p class="text-[11px] text-emerald-600 font-bold bg-emerald-50 p-2 rounded-lg border border-emerald-200">Indice test : Le code simulé est <span class="underline">123456</span></p>
             </div>
-
-            <div>
-              <label class="block font-bold text-slate-700 mb-1 text-center">Code de sécurité à 6 chiffres</label>
-              <input type="text" x-model="otpInput" maxlength="6" placeholder="123456" required class="w-full p-3 text-center tracking-widest text-lg font-black bg-white border border-slate-300 text-slate-900 rounded-xl focus:border-emerald-500 focus:outline-hidden">
+            <!-- Aperçu du tableau de bord -->
+            <div class="pub-card p-5 rotate-1 hidden sm:block bg-white border border-slate-200">
+              <div class="flex items-center gap-1.5 mb-4"><span class="w-2.5 h-2.5 rounded-full bg-red-400"></span><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span><span class="ml-auto text-[11px] text-slate-400">Exemple d'aperçu</span></div>
+              <div class="grid grid-cols-3 gap-3 mb-4">
+                <div class="rounded-xl bg-slate-50 p-3 border border-slate-100"><p class="text-[11px] text-slate-500">Chiffre d'affaires</p><p class="text-lg font-bold text-slate-900">86 400 €</p></div>
+                <div class="rounded-xl bg-slate-50 p-3 border border-slate-100"><p class="text-[11px] text-slate-500">Coûts réels</p><p class="text-lg font-bold text-slate-900">61 150 €</p></div>
+                <div class="rounded-xl bg-emerald-50 p-3 border border-emerald-100"><p class="text-[11px] text-emerald-700">Marge</p><p class="text-lg font-bold text-emerald-700">29 %</p></div>
+              </div>
+              <div class="rounded-xl bg-slate-50 p-4 flex items-end gap-2 h-32 border border-slate-100">
+                <div class="flex-1 bg-emerald-500 rounded-t" style="height:45%"></div><div class="flex-1 bg-amber-500 rounded-t" style="height:30%"></div>
+                <div class="flex-1 bg-emerald-500 rounded-t" style="height:70%"></div><div class="flex-1 bg-amber-500 rounded-t" style="height:55%"></div>
+                <div class="flex-1 bg-emerald-500 rounded-t" style="height:90%"></div><div class="flex-1 bg-amber-500 rounded-t" style="height:62%"></div>
+              </div>
+              <div class="mt-3 rounded-xl bg-slate-50 p-3 text-xs text-slate-700 border border-slate-100">Dictée vocale : « Achat de 40 sacs de ciment, chantier Les Oliviers » enregistré.</div>
             </div>
+          </div>
+          <div class="grid md:grid-cols-3 gap-5 mt-20">
+            <div class="pub-card p-6"><h3 class="font-display font-bold text-slate-900 text-lg">Zéro impayé oublié</h3><p class="text-sm text-slate-600 mt-2 leading-relaxed">Relancez vos clients en un clic par WhatsApp ou e-mail dès qu'une facture dépasse son échéance.</p></div>
+            <div class="pub-card p-6"><h3 class="font-display font-bold text-slate-900 text-lg">Dictée vocale chantier</h3><p class="text-sm text-slate-600 mt-2 leading-relaxed">Enregistrez achats de matériaux et heures d'ouvriers à la voix, sans papier et sans ressaisie le soir.</p></div>
+            <div class="pub-card p-6"><h3 class="font-display font-bold text-slate-900 text-lg">Sécurité et conformité</h3><p class="text-sm text-slate-600 mt-2 leading-relaxed">Suivi de la conformité URSSAF de vos sous-traitants et connexion protégée par un code envoyé par e-mail.</p></div>
+          </div>
+          <div class="mt-16 pub-card p-8 bg-white border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-5 shadow-md">
+            <p class="font-display text-2xl font-bold text-slate-900">Prêt à piloter vos chantiers avec des chiffres fiables ?</p>
+            <button type="button" @click="nav('pricing')" class="px-6 py-3 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white whitespace-nowrap shadow-xs">Voir les tarifs</button>
+          </div>
+        </section>
 
-            <div class="flex gap-2">
-              <button type="button" @click="otpStep = false" class="py-3 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition">Retour</button>
-              <button type="submit" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl transition shadow-md">Valider et entrer</button>
+        <!-- CONNEXION -->
+        <section x-show="view==='login'" x-cloak class="max-w-6xl mx-auto px-5 py-14 grid lg:grid-cols-2 gap-12 items-center">
+          <div class="space-y-5">
+            <h1 class="font-display text-3xl lg:text-5xl font-extrabold text-slate-900 leading-tight">Retrouvez vos chantiers, vos marges et vos relances.</h1>
+            <p class="text-slate-600 leading-relaxed max-w-md">Connectez-vous ou créez votre compte en deux minutes. Un code de sécurité à 6 chiffres protège l'accès à votre trésorerie.</p>
+            <p class="text-xs text-slate-400">© 2026 BatiPilot. Vos données restent les vôtres.</p>
+          </div>
+          <div class="flex justify-center">
+            <div class="auth-card w-full max-w-md p-8 space-y-6">
+              
+              <!-- ÉTAPE 1 : IDENTIFIANTS -->
+              <template x-if="!otpStep">
+                <div class="space-y-6">
+                  <div class="flex p-1 bg-slate-100 rounded-2xl border border-slate-200">
+                    <button type="button" @click="authMode = 'login'" :class="authMode === 'login' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-500 hover:text-slate-800 font-semibold'" class="flex-1 py-2.5 rounded-xl text-xs transition">Espace Client</button>
+                    <button type="button" @click="authMode = 'register'" :class="authMode === 'register' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-500 hover:text-slate-800 font-semibold'" class="flex-1 py-2.5 rounded-xl text-xs transition">Créer un compte</button>
+                  </div>
+
+                  <form x-show="authMode === 'login'" @submit.prevent="requestOtpCode()" class="space-y-4 text-xs">
+                    <h2 class="text-lg font-black text-slate-900">Connexion sécurisée</h2>
+                    <div>
+                      <label class="block font-bold text-slate-700 mb-1">Email professionnel</label>
+                      <input type="email" x-model="loginForm.email" placeholder="nom@entreprise-btp.fr" required class="w-full p-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl focus:border-emerald-500 focus:outline-hidden">
+                    </div>
+                    <div>
+                      <label class="block font-bold text-slate-700 mb-1">Mot de passe</label>
+                      <input type="password" x-model="loginForm.password" placeholder="••••••••" required class="w-full p-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl focus:border-emerald-500 focus:outline-hidden">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl transition shadow-sm">Recevoir mon code de sécurité</button>
+                  </form>
+
+                  <form x-show="authMode === 'register'" @submit.prevent="requestOtpCode()" class="space-y-4 text-xs" x-cloak>
+                    <h2 class="text-lg font-black text-slate-900">Inscription Pro</h2>
+                    <p class="text-slate-500 text-[11px]">8 caractères min., 1 majuscule, 1 chiffre, 1 caractère spécial.</p>
+                    <div>
+                      <label class="block font-bold text-slate-700 mb-1">Raison sociale / Entreprise</label>
+                      <input type="text" x-model="registerForm.company" placeholder="Ex: Martin Rénovation" required class="w-full p-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl focus:border-emerald-500 focus:outline-hidden">
+                    </div>
+                    <div>
+                      <label class="block font-bold text-slate-700 mb-1">Email professionnel</label>
+                      <input type="email" x-model="registerForm.email" placeholder="contact@martin-renov.fr" required class="w-full p-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl focus:border-emerald-500 focus:outline-hidden">
+                    </div>
+                    <div>
+                      <label class="block font-bold text-slate-700 mb-1">Mot de passe sécurisé</label>
+                      <input type="password" x-model="registerForm.password" placeholder="Ex: Bati#2026" required class="w-full p-3 bg-slate-50 border border-slate-300 text-slate-900 rounded-xl focus:border-emerald-500 focus:outline-hidden">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl transition shadow-sm">S'inscrire & envoyer le code</button>
+                  </form>
+                </div>
+              </template>
+
+              <!-- ÉTAPE 2 : SAISIE DU CODE REÇU PAR MAIL -->
+              <template x-if="otpStep">
+                <form @submit.prevent="verifyOtpCode()" class="space-y-4 text-xs">
+                  <div class="text-center space-y-2">
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto border border-emerald-100">
+                      <i data-lucide="mail" class="w-6 h-6"></i>
+                    </div>
+                    <h2 class="text-lg font-black text-slate-900">Vérification par e-mail</h2>
+                    <p class="text-slate-500">Un code de sécurité à 6 chiffres vient d'être envoyé à <strong class="text-slate-800" x-text="loginForm.email || registerForm.email"></strong>.</p>
+                    <p class="text-[11px] text-emerald-700 font-bold bg-emerald-50 p-2 rounded-lg border border-emerald-200">Indice test : Le code simulé est <span class="underline">123456</span></p>
+                  </div>
+
+                  <div>
+                    <label class="block font-bold text-slate-700 mb-1 text-center">Code de sécurité à 6 chiffres</label>
+                    <input type="text" x-model="otpInput" maxlength="6" placeholder="123456" required class="w-full p-3 text-center tracking-widest text-lg font-black bg-slate-50 border border-slate-300 text-slate-900 rounded-xl focus:border-emerald-500 focus:outline-hidden">
+                  </div>
+
+                  <div class="flex gap-2">
+                    <button type="button" @click="otpStep = false" class="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">Retour</button>
+                    <button type="submit" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl transition shadow-sm">Valider et entrer</button>
+                  </div>
+                </form>
+              </template>
+
             </div>
-          </form>
-        </template>
+          </div>
+        </section>
 
-      </div>
+        <!-- RÉSERVER UNE DÉMO / CONTACT -->
+        <section x-show="view==='demo'" x-cloak class="max-w-3xl mx-auto px-5 py-14">
+          <div class="pub-card p-8 space-y-6">
+            <div x-show="!sent" class="space-y-6">
+              <div>
+                <h1 class="font-display text-3xl font-extrabold text-slate-900">Réservez votre démo</h1>
+                <p class="text-slate-600 mt-2">Laissez-nous vos coordonnées : nous vous recontactons avec la tarification adaptée à votre entreprise.</p>
+              </div>
+              <form @submit.prevent="submitDemo()" class="grid sm:grid-cols-2 gap-4 text-sm">
+                <label class="block"><span class="block font-semibold text-slate-700 mb-1">Nom et prénom</span><input type="text" x-model="demo.name" required class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900"></label>
+                <label class="block"><span class="block font-semibold text-slate-700 mb-1">Nom de l'entreprise</span><input type="text" x-model="demo.company" required class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900"></label>
+                <label class="block"><span class="block font-semibold text-slate-700 mb-1">Adresse e-mail</span><input type="email" x-model="demo.email" required class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900"></label>
+                <label class="block"><span class="block font-semibold text-slate-700 mb-1">Numéro de téléphone</span><input type="tel" x-model="demo.phone" required class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900"></label>
+                <label class="block sm:col-span-2"><span class="block font-semibold text-slate-700 mb-1">Votre message</span><textarea x-model="demo.message" rows="4" placeholder="Taille de l'équipe, nombre de chantiers, ce que vous aimeriez suivre…" class="w-full p-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900"></textarea></label>
+                <button type="submit" class="sm:col-span-2 py-3.5 rounded-xl font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-sm">Envoyer ma demande</button>
+              </form>
+            </div>
+            <div x-show="sent" x-cloak class="text-center py-10 space-y-3">
+              <h2 class="font-display text-2xl font-bold text-slate-900">Demande bien reçue</h2>
+              <p class="text-slate-600">Merci <span x-text="demo.name"></span>. Nous vous écrivons très vite avec la tarification.</p>
+              <button type="button" @click="nav('home')" class="mt-3 px-5 py-2.5 rounded-xl font-bold border border-slate-300 bg-white text-slate-800 shadow-xs">Retour à l'accueil</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- TARIFS -->
+        <section x-show="view==='pricing'" x-cloak class="max-w-6xl mx-auto px-5 py-14">
+          <div class="text-center max-w-2xl mx-auto space-y-3">
+            <h1 class="font-display text-3xl lg:text-5xl font-extrabold text-slate-900">Un abonnement qui se rembourse dès le premier impayé récupéré.</h1>
+            <p class="text-slate-600">Sans engagement de durée. Prix HT par mois.</p>
+          </div>
+          <div class="grid md:grid-cols-3 gap-6 mt-12 items-stretch">
+            <div class="pub-card p-7 flex flex-col bg-white border border-slate-200">
+              <h3 class="font-display text-xl font-bold text-slate-900">Starter Artisan</h3>
+              <p class="text-sm text-slate-500 mt-1">Pour l'artisan qui veut arrêter de tout noter sur des carnets.</p>
+              <p class="mt-5 text-4xl font-extrabold text-slate-900">29 €<span class="text-sm font-normal text-slate-500"> / mois HT</span></p>
+              <ul class="mt-5 space-y-2 text-sm text-slate-700 flex-1"><li>✓ 1 utilisateur inclus</li><li>✓ Chantiers illimités</li><li>✓ Devis et factures PDF</li></ul>
+              <button type="button" @click="nav('demo')" class="mt-6 py-3 rounded-xl font-bold border border-slate-300 text-slate-800 hover:bg-slate-50 shadow-xs">Réserver une démo</button>
+            </div>
+            <div class="pub-card p-7 flex flex-col ring-2 ring-emerald-500 relative bg-white shadow-md">
+              <span class="absolute -top-3 left-6 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white shadow-xs">Le plus populaire</span>
+              <h3 class="font-display text-xl font-bold text-slate-900">Pro CFO</h3>
+              <p class="text-sm text-slate-500 mt-1">Pour la PME qui veut piloter ses marges chantier par chantier.</p>
+              <p class="mt-5 text-4xl font-extrabold text-slate-900">69 €<span class="text-sm font-normal text-slate-500"> / mois HT</span></p>
+              <ul class="mt-5 space-y-2 text-sm text-slate-700 flex-1"><li>✓ Jusqu'à 3 collaborateurs inclus</li><li>✓ Dictée vocale illimitée</li><li>✓ Suivi des marges en temps réel</li><li>✓ Relances automatiques clients</li></ul>
+              <button type="button" @click="nav('demo')" class="mt-6 py-3 rounded-xl font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm">Réserver une démo</button>
+            </div>
+            <div class="pub-card p-7 flex flex-col bg-white border border-slate-200">
+              <h3 class="font-display text-xl font-bold text-slate-900">Business Premier</h3>
+              <p class="text-sm text-slate-500 mt-1">Pour les structures qui font tourner plusieurs équipes en parallèle.</p>
+              <p class="mt-5 text-4xl font-extrabold text-slate-900">149 €<span class="text-sm font-normal text-slate-500"> / mois HT</span></p>
+              <ul class="mt-5 space-y-2 text-sm text-slate-700 flex-1"><li>✓ Utilisateurs illimités</li><li>✓ Support prioritaire 7j/7</li><li>✓ Tableaux de bord avancés et API</li></ul>
+              <button type="button" @click="nav('demo')" class="mt-6 py-3 rounded-xl font-bold border border-slate-300 text-slate-800 hover:bg-slate-50 shadow-xs">Réserver une démo</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- PAGES D'INFORMATION -->
+        <section x-show="view==='page'" x-cloak class="max-w-3xl mx-auto px-5 py-16">
+          <div class="pub-card p-8 space-y-4 bg-white border border-slate-200 shadow-md">
+            <h1 class="font-display text-3xl font-extrabold text-slate-900" x-text="pages[page].t"></h1>
+            <p class="text-slate-600 leading-relaxed" x-text="pages[page].p"></p>
+            <button type="button" @click="nav('demo')" class="px-5 py-2.5 rounded-xl font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-xs">Nous contacter</button>
+          </div>
+        </section>
+      </main>
     </div>
   </div>
+
 
   <!-- APPLICATION PRINCIPALE -->
   <div x-show="isAuthenticated" x-cloak class="flex h-screen overflow-hidden">
     
     <!-- SIDEBAR -->
-    <aside class="w-64 bg-slate-950 text-slate-300 flex flex-col justify-between p-4 flex-shrink-0 border-r border-slate-800 select-none">
+    <aside class="w-64 bg-slate-900 text-slate-200 flex flex-col justify-between p-4 flex-shrink-0 border-r border-slate-800 select-none">
       <div class="space-y-6">
         <div class="flex items-center gap-3 px-2 py-1">
-          <div class="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center font-black text-slate-950 text-xl shadow-lg shadow-emerald-500/20">B</div>
+          <svg class="w-9 h-9"><use href="#bp-logo"/></svg>
           <div>
             <h1 class="font-bold text-white text-base leading-none">BatiPilot</h1>
-            <p class="text-[10px] text-emerald-400 font-medium mt-1 uppercase tracking-wider">Sécurité & CFO</p>
+            <p class="text-[10px] text-emerald-400 font-semibold mt-1 uppercase tracking-wider">Sécurité & CFO</p>
           </div>
         </div>
 
-        <button type="button" @click="openVoiceModal('global')" class="w-full flex items-center justify-between px-3 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl text-xs font-bold border border-red-500/30 transition">
+        <button type="button" @click="openVoiceModal('global')" class="w-full flex items-center justify-between px-3 py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-xl text-xs font-bold border border-red-500/40 transition">
           <div class="flex items-center gap-2">
-            <i data-lucide="mic" class="w-4 h-4 text-red-500 animate-pulse"></i>
+            <i data-lucide="mic" class="w-4 h-4 text-red-400 animate-pulse"></i>
             <span>Dictée Vocale IA</span>
           </div>
-          <span class="px-1.5 py-0.5 bg-red-500/20 text-[9px] rounded font-extrabold uppercase">Live</span>
+          <span class="px-1.5 py-0.5 bg-red-500 text-white text-[9px] rounded font-extrabold uppercase shadow-xs">Live</span>
         </button>
 
         <nav class="space-y-1 text-xs font-semibold">
-          <button type="button" @click="setTab('cfo')" :class="currentTab === 'cfo' ? 'bg-emerald-500/15 text-emerald-400 border-l-4 border-emerald-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+          <button type="button" @click="setTab('cfo')" :class="currentTab === 'cfo' ? 'bg-emerald-500/20 text-emerald-300 border-l-4 border-emerald-400 pl-2.5' : 'text-slate-400 hover:bg-slate-800 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
             <i data-lucide="layout-grid" class="w-4 h-4"></i> Tableau de bord & Synthèse
           </button>
-          <button type="button" @click="setTab('chantiers')" :class="currentTab === 'chantiers' ? 'bg-indigo-500/15 text-indigo-400 border-l-4 border-indigo-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+          <button type="button" @click="setTab('chantiers')" :class="currentTab === 'chantiers' ? 'bg-indigo-500/20 text-indigo-300 border-l-4 border-indigo-400 pl-2.5' : 'text-slate-400 hover:bg-slate-800 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
             <i data-lucide="hard-hat" class="w-4 h-4"></i> Chantiers & Coûts
           </button>
-          <button type="button" @click="setTab('devis')" :class="currentTab === 'devis' ? 'bg-blue-500/15 text-blue-400 border-l-4 border-blue-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+          <button type="button" @click="setTab('devis')" :class="currentTab === 'devis' ? 'bg-blue-500/20 text-blue-300 border-l-4 border-blue-400 pl-2.5' : 'text-slate-400 hover:bg-slate-800 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
             <i data-lucide="file-signature" class="w-4 h-4"></i> Devis & Signatures
           </button>
-          <button type="button" @click="setTab('soustraitants')" :class="currentTab === 'soustraitants' ? 'bg-teal-500/15 text-teal-400 border-l-4 border-teal-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+          <button type="button" @click="setTab('soustraitants')" :class="currentTab === 'soustraitants' ? 'bg-teal-500/20 text-teal-300 border-l-4 border-teal-400 pl-2.5' : 'text-slate-400 hover:bg-slate-800 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
             <i data-lucide="shield-check" class="w-4 h-4"></i> Sous-traitants
           </button>
-          <button type="button" @click="setTab('pointage')" :class="currentTab === 'pointage' ? 'bg-amber-500/15 text-amber-400 border-l-4 border-amber-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+          <button type="button" @click="setTab('pointage')" :class="currentTab === 'pointage' ? 'bg-amber-500/20 text-amber-300 border-l-4 border-amber-400 pl-2.5' : 'text-slate-400 hover:bg-slate-800 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
             <i data-lucide="timer" class="w-4 h-4"></i> Pointage & Dépenses
           </button>
-          <button type="button" @click="setTab('facturation')" :class="currentTab === 'facturation' ? 'bg-purple-500/15 text-purple-400 border-l-4 border-purple-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+          <button type="button" @click="setTab('facturation')" :class="currentTab === 'facturation' ? 'bg-purple-500/20 text-purple-300 border-l-4 border-purple-400 pl-2.5' : 'text-slate-400 hover:bg-slate-800 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
             <i data-lucide="receipt" class="w-4 h-4"></i> Factures & Relances
           </button>
-          <button type="button" @click="setTab('abonnements')" :class="currentTab === 'abonnements' ? 'bg-emerald-500/15 text-emerald-400 border-l-4 border-emerald-500 pl-2.5' : 'text-slate-400 hover:bg-slate-900 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
+          <button type="button" @click="setTab('abonnements')" :class="currentTab === 'abonnements' ? 'bg-emerald-500/20 text-emerald-300 border-l-4 border-emerald-400 pl-2.5' : 'text-slate-400 hover:bg-slate-800 hover:text-white pl-3'" class="w-full flex items-center gap-3 py-2.5 rounded-r-xl transition text-left">
             <i data-lucide="credit-card" class="w-4 h-4"></i> Abonnements & Offres
           </button>
         </nav>
       </div>
 
       <div class="space-y-2">
-        <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between shadow-inner">
           <div class="flex items-center gap-2.5 overflow-hidden">
-            <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-xs font-bold text-slate-950 flex-shrink-0">PRO</div>
+            <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-xs font-bold text-slate-950 flex-shrink-0 shadow-xs">PRO</div>
             <div class="truncate text-xs">
               <p class="font-bold text-white truncate" x-text="currentUserEmail">Compte Pro</p>
               <p class="text-emerald-400 text-[10px] font-semibold">Sécurisé & Connecté</p>
@@ -202,11 +365,10 @@
     </aside>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 overflow-y-auto bg-slate-50 flex flex-col light-glow-effect">
+    <main class="flex-1 overflow-y-auto bg-slate-100 flex flex-col light-glow-effect">
       
       <!-- HEADER -->
-      <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-10 shadow-xs relative">
-        <!-- Petite ligne dynamique tout en haut du header -->
+      <header class="h-16 bg-white/90 backdrop-blur-md border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-10 shadow-xs relative">
         <div class="absolute top-0 left-0 right-0 h-1 transition-colors duration-300"
              :class="{
                'bg-emerald-500': currentTab === 'cfo' || currentTab === 'abonnements',
@@ -227,7 +389,7 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <button type="button" @click="setTab('abonnements')" class="px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 rounded-xl text-xs font-extrabold border border-emerald-500/30 flex items-center gap-2 transition">
+          <button type="button" @click="setTab('abonnements')" class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-extrabold border border-emerald-200 flex items-center gap-2 transition shadow-2xs">
             <i data-lucide="zap" class="w-4 h-4 text-emerald-600"></i> Offre Pro CFO : 69 € / mois
           </button>
           <button type="button" @click="exportAllPDF()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold border border-slate-800 flex items-center gap-2 transition shadow-xs">
@@ -261,25 +423,25 @@
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="bg-white/90 backdrop-blur-xs p-5 rounded-2xl border border-slate-200 shadow-xs">
-              <p class="text-xs font-bold text-slate-400 uppercase">CA Prévu / Facturé</p>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <p class="text-xs font-bold text-slate-500 uppercase">CA Prévu / Facturé</p>
               <p class="text-2xl font-black text-slate-900 mt-2" x-text="totalCA + ' €'"></p>
             </div>
-            <div class="bg-white/90 backdrop-blur-xs p-5 rounded-2xl border border-slate-200 shadow-xs">
-              <p class="text-xs font-bold text-slate-400 uppercase">Coûts Réels</p>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <p class="text-xs font-bold text-slate-500 uppercase">Coûts Réels</p>
               <p class="text-2xl font-black text-slate-900 mt-2" x-text="totalExpenses + ' €'"></p>
             </div>
-            <div class="bg-white/90 backdrop-blur-xs p-5 rounded-2xl border border-slate-200 shadow-xs">
-              <p class="text-xs font-bold text-slate-400 uppercase">Marge Moyenne</p>
-              <p class="text-2xl font-black text-slate-900 mt-2 text-emerald-600" x-text="averageMargin + '%'"></p>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <p class="text-xs font-bold text-slate-500 uppercase">Marge Moyenne</p>
+              <p class="text-2xl font-black text-emerald-600 mt-2" x-text="averageMargin + '%'"></p>
             </div>
-            <div class="bg-white/90 backdrop-blur-xs p-5 rounded-2xl border border-slate-200 shadow-xs">
-              <p class="text-xs font-bold text-slate-400 uppercase">Trésorerie nette</p>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+              <p class="text-xs font-bold text-slate-500 uppercase">Trésorerie nette</p>
               <p class="text-2xl font-black text-slate-900 mt-2" x-text="netCash + ' €'"></p>
             </div>
           </div>
 
-          <div class="bg-white/90 backdrop-blur-xs p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
             <h3 class="font-bold text-slate-900 text-sm">Évolution dynamique de la Trésorerie et des Marges par Chantier</h3>
             <div class="h-64 relative flex items-center justify-center bg-slate-50 rounded-2xl border border-slate-200 p-4">
               <canvas id="cfoChart"></canvas>
@@ -293,32 +455,32 @@
             <h2 class="text-2xl font-black text-slate-900">Suivi des Chantiers</h2>
           </div>
           
-          <div class="bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 p-6 space-y-4 shadow-xs text-xs">
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-xs text-xs">
             <h3 class="font-bold text-slate-900 text-sm">Ajouter un nouveau chantier</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Nom du chantier</label>
-                <input type="text" x-model="newChantier.name" placeholder="Ex: Rénovation Appartement Paris" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <input type="text" x-model="newChantier.name" placeholder="Ex: Rénovation Appartement Paris" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
               </div>
               <div>
                 <label class="block font-bold text-slate-700 mb-1">CA Prévu (€)</label>
-                <input type="number" x-model="newChantier.ca" placeholder="Ex: 12000" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <input type="number" x-model="newChantier.ca" placeholder="Ex: 12000" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
               </div>
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Coûts Réels (€)</label>
-                <input type="number" x-model="newChantier.cost" placeholder="Ex: 3500" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <input type="number" x-model="newChantier.cost" placeholder="Ex: 3500" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
               </div>
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Avancement (%)</label>
-                <input type="number" x-model="newChantier.progress" placeholder="Ex: 50" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <input type="number" x-model="newChantier.progress" placeholder="Ex: 50" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
               </div>
             </div>
             <button type="button" @click="addChantier()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-xs">Enregistrer le chantier</button>
           </div>
 
-          <div class="bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
             <table class="w-full text-left text-xs">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600">
                 <tr>
                   <th class="p-4 font-bold">Chantier</th>
                   <th class="p-4 font-bold">Avancement</th>
@@ -328,13 +490,13 @@
                   <th class="p-4 font-bold">Action</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100">
+              <tbody class="divide-y divide-slate-100 text-slate-700">
                 <template x-for="(chantier, index) in chantiersList" :key="index">
                   <tr>
                     <td class="p-4 font-bold text-slate-900" x-text="chantier.name"></td>
                     <td class="p-4" x-text="chantier.progress + '%'"></td>
-                    <td class="p-4" x-text="chantier.ca + ' €'"></td>
-                    <td class="p-4" x-text="chantier.cost + ' €'"></td>
+                    <td class="p-4 font-semibold" x-text="chantier.ca + ' €'"></td>
+                    <td class="p-4 font-semibold" x-text="chantier.cost + ' €'"></td>
                     <td class="p-4 text-emerald-600 font-bold" x-text="Math.round(((chantier.ca - chantier.cost) / (chantier.ca || 1)) * 100) + ' %'"></td>
                     <td class="p-4">
                       <button type="button" @click="removeChantier(index)" class="text-red-500 hover:text-red-700 font-bold">Supprimer</button>
@@ -355,39 +517,39 @@
         <section x-show="currentTab === 'devis'" x-cloak class="space-y-6">
           <div class="flex justify-between items-center">
             <h2 class="text-2xl font-black text-slate-900">Module Commercial — Devis & Signature</h2>
-            <button type="button" @click="openVoiceModal('devis')" class="px-3 py-2 bg-red-500/10 text-red-600 font-bold rounded-xl text-xs border border-red-500/30 flex items-center gap-2 hover:bg-red-500/20">
+            <button type="button" @click="openVoiceModal('devis')" class="px-3 py-2 bg-red-50 text-red-600 font-bold rounded-xl text-xs border border-red-200 flex items-center gap-2 hover:bg-red-100">
               <i data-lucide="mic" class="w-4 h-4"></i> Dicter le devis par IA
             </button>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
               <div class="h-1.5 w-full bg-blue-500"></div>
               <div class="p-6 space-y-4 text-xs">
                 <h3 class="font-bold text-slate-900 text-sm">Création et Saisie du Devis</h3>
                 <div class="space-y-3">
                   <div>
                     <label class="block font-bold text-slate-700 mb-1">Nom du projet</label>
-                    <input type="text" x-model="newDevis.projet" placeholder="Ex: Rénovation cuisine" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                    <input type="text" x-model="newDevis.projet" placeholder="Ex: Rénovation cuisine" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
                   </div>
                   <div>
                     <label class="block font-bold text-slate-700 mb-1">Nom du client</label>
-                    <input type="text" x-model="newDevis.client" placeholder="Ex: M. Bernard" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                    <input type="text" x-model="newDevis.client" placeholder="Ex: M. Bernard" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
                   </div>
                   <div>
                     <label class="block font-bold text-slate-700 mb-1">Montant HT (€)</label>
-                    <input type="number" x-model="newDevis.montantHT" placeholder="Ex: 4500" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                    <input type="number" x-model="newDevis.montantHT" placeholder="Ex: 4500" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
                   </div>
                   <div>
                     <label class="block font-bold text-slate-700 mb-1">Description des travaux</label>
-                    <textarea rows="3" x-model="newDevis.description" placeholder="Détails..." class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl"></textarea>
+                    <textarea rows="3" x-model="newDevis.description" placeholder="Détails..." class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900"></textarea>
                   </div>
                 </div>
                 <button type="button" @click="saveNewDevis()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-xs">Enregistrer le devis</button>
               </div>
             </div>
 
-            <div class="bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between">
               <div class="h-1.5 w-full bg-blue-500"></div>
               <div class="p-6 space-y-4 text-xs flex-1 flex flex-col justify-between">
                 <div class="space-y-3">
@@ -402,7 +564,7 @@
                 </div>
 
                 <div class="flex gap-2 pt-2">
-                  <button type="button" @click="clearSignature()" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl">Effacer</button>
+                  <button type="button" @click="clearSignature()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl">Effacer</button>
                   <button type="button" @click="saveSignature()" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs">Valider la signature</button>
                 </div>
               </div>
@@ -416,24 +578,24 @@
             <h2 class="text-2xl font-black text-slate-900">Gestion des Sous-traitants</h2>
           </div>
 
-          <div class="bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 p-6 space-y-4 shadow-xs text-xs">
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-xs text-xs">
             <h3 class="font-bold text-slate-900 text-sm">Ajouter un sous-traitant</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Corps d'état</label>
-                <input type="text" x-model="newSub.corps" placeholder="Ex: Électricité" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <input type="text" x-model="newSub.corps" placeholder="Ex: Électricité" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
               </div>
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Entreprise</label>
-                <input type="text" x-model="newSub.name" placeholder="Ex: Elec Pro" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <input type="text" x-model="newSub.name" placeholder="Ex: Elec Pro" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
               </div>
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Montant contrat (€)</label>
-                <input type="number" x-model="newSub.amount" placeholder="Ex: 3000" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <input type="number" x-model="newSub.amount" placeholder="Ex: 3000" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
               </div>
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Statut URSSAF</label>
-                <select x-model="newSub.urssaf" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <select x-model="newSub.urssaf" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
                   <option value="Conforme">Conforme</option>
                   <option value="En attente">En attente</option>
                 </select>
@@ -442,9 +604,9 @@
             <button type="button" @click="addSubcontractor()" class="px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-xs">Ajouter</button>
           </div>
 
-          <div class="bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
             <table class="w-full text-left text-xs">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600">
                 <tr>
                   <th class="p-4 font-bold">Corps d'état</th>
                   <th class="p-4 font-bold">Entreprise</th>
@@ -457,7 +619,7 @@
                 <template x-for="(sub, index) in subsList" :key="index">
                   <tr>
                     <td class="p-4 font-semibold text-slate-900" x-text="sub.corps"></td>
-                    <td class="p-4 font-bold" x-text="sub.name"></td>
+                    <td class="p-4 font-bold text-slate-900" x-text="sub.name"></td>
                     <td class="p-4 font-bold" x-text="sub.amount + ' € HT'"></td>
                     <td class="p-4">
                       <span class="px-2.5 py-1 font-bold rounded-full text-[10px]" :class="sub.urssaf === 'Conforme' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'" x-text="sub.urssaf"></span>
@@ -481,40 +643,40 @@
         <section x-show="currentTab === 'pointage'" x-cloak class="space-y-6">
           <div class="flex justify-between items-center">
             <h2 class="text-2xl font-black text-slate-900">Pointage des Heures & Dépenses</h2>
-            <button type="button" @click="openVoiceModal('pointage')" class="px-3 py-2 bg-red-500/10 text-red-600 font-bold rounded-xl text-xs border border-red-500/30 flex items-center gap-2 hover:bg-red-500/20">
+            <button type="button" @click="openVoiceModal('pointage')" class="px-3 py-2 bg-red-50 text-red-600 font-bold rounded-xl text-xs border border-red-200 flex items-center gap-2 hover:bg-red-100">
               <i data-lucide="mic" class="w-4 h-4"></i> Dicter une dépense
             </button>
           </div>
 
-          <div class="bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 p-6 space-y-4 shadow-xs text-xs">
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 shadow-xs text-xs">
             <h3 class="font-bold text-slate-900 text-sm">Ajouter une ligne de coût</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Chantier</label>
-                <input type="text" x-model="newExpense.chantier" placeholder="Nom du chantier" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <input type="text" x-model="newExpense.chantier" placeholder="Nom du chantier" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
               </div>
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Type</label>
-                <select x-model="newExpense.type" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <select x-model="newExpense.type" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
                   <option value="Achat / Matériel">Achat / Matériel</option>
                   <option value="Heures ouvrier">Heures ouvrier</option>
                 </select>
               </div>
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Libellé</label>
-                <input type="text" x-model="newExpense.label" placeholder="Description" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <input type="text" x-model="newExpense.label" placeholder="Description" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
               </div>
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Montant (€ ou Heures)</label>
-                <input type="text" x-model="newExpense.value" placeholder="Ex: 250 € ou 5h" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+                <input type="text" x-model="newExpense.value" placeholder="Ex: 250 € ou 5h" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
               </div>
             </div>
             <button type="button" @click="addExpense()" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-xs">Enregistrer</button>
           </div>
 
-          <div class="bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
             <table class="w-full text-left text-xs">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600">
                 <tr>
                   <th class="p-4 font-bold">Chantier</th>
                   <th class="p-4 font-bold">Type</th>
@@ -523,7 +685,7 @@
                   <th class="p-4 font-bold">Action</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100">
+              <tbody class="divide-y divide-slate-100 text-slate-700">
                 <template x-for="(item, index) in expensesList" :key="index">
                   <tr>
                     <td class="p-4 font-bold text-slate-900" x-text="item.chantier"></td>
@@ -553,15 +715,15 @@
               <button type="button" @click="openManualFactureModal()" class="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs flex items-center gap-2 shadow-xs transition">
                 <i data-lucide="plus-circle" class="w-4 h-4"></i> Saisir manuellement une facture
               </button>
-              <button type="button" @click="openVoiceModal('facturation')" class="px-3 py-2 bg-red-500/10 text-red-600 font-bold rounded-xl text-xs border border-red-500/30 flex items-center gap-2 hover:bg-red-500/20">
+              <button type="button" @click="openVoiceModal('facturation')" class="px-3 py-2 bg-red-50 text-red-600 font-bold rounded-xl text-xs border border-red-200 flex items-center gap-2 hover:bg-red-100">
                 <i data-lucide="mic" class="w-4 h-4"></i> Dicter facture par IA
               </button>
             </div>
           </div>
 
-          <div class="bg-white/90 backdrop-blur-xs rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+          <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
             <table class="w-full text-left text-xs">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600">
                 <tr>
                   <th class="p-4 font-bold">N° Facture</th>
                   <th class="p-4 font-bold">Chantier / Client</th>
@@ -574,7 +736,7 @@
                 <template x-for="(fac, idx) in facturesList" :key="idx">
                   <tr>
                     <td class="p-4 font-bold text-slate-900" x-text="fac.num"></td>
-                    <td class="p-4" x-text="fac.chantier"></td>
+                    <td class="p-4 font-medium" x-text="fac.chantier"></td>
                     <td class="p-4 font-bold" x-text="fac.montant"></td>
                     <td class="p-4"><span class="px-2.5 py-1 bg-amber-100 text-amber-800 font-bold rounded-full text-[10px]" x-text="fac.statut"></span></td>
                     <td class="p-4 flex gap-2">
@@ -603,7 +765,7 @@
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-            <div class="bg-white/90 backdrop-blur-xs p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4 flex flex-col justify-between">
               <div class="space-y-3">
                 <h3 class="font-bold text-slate-900 text-base">Starter Artisan</h3>
                 <div class="text-3xl font-black text-slate-900">29 € <span class="text-xs font-normal text-slate-500">/ mois HT</span></div>
@@ -617,7 +779,7 @@
             </div>
 
             <div class="bg-slate-900 text-white p-6 rounded-3xl border-2 border-emerald-500 shadow-xl space-y-4 flex flex-col justify-between relative">
-              <span class="absolute -top-3 right-6 bg-emerald-500 text-slate-950 font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider">Le + Populaire</span>
+              <span class="absolute -top-3 right-6 bg-emerald-500 text-white font-extrabold text-[10px] px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">Le + Populaire</span>
               <div class="space-y-3">
                 <h3 class="font-bold text-emerald-400 text-base">Pro CFO</h3>
                 <div class="text-3xl font-black text-white">69 € <span class="text-xs font-normal text-slate-400">/ mois HT</span></div>
@@ -631,7 +793,7 @@
               <button type="button" @click="showToast('Formule Pro CFO activée !')" class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold rounded-xl text-xs transition shadow-lg shadow-emerald-500/20">Sélectionner Pro CFO</button>
             </div>
 
-            <div class="bg-white/90 backdrop-blur-xs p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4 flex flex-col justify-between">
               <div class="space-y-3">
                 <h3 class="font-bold text-slate-900 text-base">Business Premier</h3>
                 <div class="text-3xl font-black text-slate-900">149 € <span class="text-xs font-normal text-slate-500">/ mois HT</span></div>
@@ -645,22 +807,21 @@
             </div>
           </div>
 
-          <!-- ARGUMENTS DE PERSUASION EN BAS -->
           <div class="pt-8 border-t border-slate-200 space-y-4">
             <h3 class="text-lg font-black text-slate-900 text-center">Pourquoi nos clients BTP choisissent BatiPilot CFO ?</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div class="bg-white/90 p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">✓</div>
+              <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold border border-emerald-100">✓</div>
                 <h4 class="font-bold text-slate-900 text-sm">Zéro impayé oublié</h4>
                 <p class="text-xs text-slate-500">Relancez vos clients en 1 clic par WhatsApp ou email dès qu'une facture dépasse l'échéance.</p>
               </div>
-              <div class="bg-white/90 p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">✓</div>
+              <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold border border-emerald-100">✓</div>
                 <h4 class="font-bold text-slate-900 text-sm">Dictée vocale chantier</h4>
                 <p class="text-xs text-slate-500">Enregistrez vos achats de matériaux et vos heures d'ouvriers directement depuis le chantier sans papier.</p>
               </div>
-              <div class="bg-white/90 p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-                <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">✓</div>
+              <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold border border-emerald-100">✓</div>
                 <h4 class="font-bold text-slate-900 text-sm">Sécurité & Conformité</h4>
                 <p class="text-xs text-slate-500">Vérification automatique des sous-traitants et chiffrement strict de vos données financières.</p>
               </div>
@@ -674,7 +835,7 @@
 
   <!-- Modal Saisie Manuelle Facture -->
   <div x-show="modalManualFacture" x-cloak class="relative z-50">
-    <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs" @click="modalManualFacture = false"></div>
+    <div class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs" @click="modalManualFacture = false"></div>
     <div class="fixed inset-0 p-4 flex justify-center items-center">
       <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-4 border border-slate-200 text-xs">
         <div class="flex justify-between items-center border-b pb-3">
@@ -688,15 +849,15 @@
         <div class="space-y-3">
           <div>
             <label class="block font-bold text-slate-700 mb-1">N° de facture</label>
-            <input type="text" x-model="manualFacture.num" placeholder="Ex: FAC-2026-099" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+            <input type="text" x-model="manualFacture.num" placeholder="Ex: FAC-2026-099" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">Chantier / Client</label>
-            <input type="text" x-model="manualFacture.chantier" placeholder="Ex: Villa Martin" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+            <input type="text" x-model="manualFacture.chantier" placeholder="Ex: Villa Martin" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">Montant HT (€)</label>
-            <input type="text" x-model="manualFacture.montant" placeholder="Ex: 3400 € HT" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl">
+            <input type="text" x-model="manualFacture.montant" placeholder="Ex: 3400 € HT" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900">
           </div>
         </div>
 
@@ -710,7 +871,7 @@
 
   <!-- Modal Dictée Vocale -->
   <div x-show="modalVoice" x-cloak class="relative z-50">
-    <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs" @click="closeVoiceModal()"></div>
+    <div class="fixed inset-0 bg-slate-950/50 backdrop-blur-xs" @click="closeVoiceModal()"></div>
     <div class="fixed inset-0 p-4 flex justify-center items-center">
       <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 space-y-4 border border-slate-200">
         <div class="flex justify-between items-center border-b pb-3">
@@ -722,7 +883,7 @@
         </div>
 
         <div class="text-center py-6 space-y-3">
-          <button type="button" @click="toggleDictationUniversal()" class="w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-all"
+          <button type="button" @click="toggleDictationUniversal()" class="w-20 h-20 rounded-full flex items-center justify-center mx-auto transition-all shadow-md"
                   :class="isListening ? 'bg-red-500 text-white animate-pulse-mic' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'">
             <i data-lucide="mic" class="w-8 h-8"></i>
           </button>
@@ -730,7 +891,7 @@
              x-text="isListening ? 'Enregistrement en cours... Parlez clairement' : 'Cliquez pour dicter'"></p>
         </div>
 
-        <div class="bg-slate-50 p-3.5 rounded-2xl border text-xs min-h-[80px] space-y-1">
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs min-h-[80px] space-y-1">
           <span class="text-[10px] uppercase font-bold text-slate-400">Transcription détectée :</span>
           <p class="text-slate-800 italic font-medium" x-text="speechTranscript || 'En attente de dictée vocale...'"></p>
         </div>
@@ -743,7 +904,7 @@
     </div>
   </div>
 
-  <div x-show="toast.visible" x-transition x-cloak class="fixed bottom-5 right-5 bg-slate-950 text-white px-4 py-3 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 z-50 border border-slate-800">
+  <div x-show="toast.visible" x-transition x-cloak class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 z-50 border border-slate-800">
     <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
     <span x-text="toast.message"></span>
   </div>
@@ -759,7 +920,6 @@
         loginForm: { email: '', password: '' },
         registerForm: { company: '', email: '', password: '' },
         
-        // Gestion OTP e-mail
         otpStep: false,
         otpInput: '',
         generatedOtp: '123456',
@@ -849,7 +1009,6 @@
           return true;
         },
 
-        // ÉTAPE 1 DE CONNEXION : ENVOI DU CODE PAR MAIL
         requestOtpCode() {
           const email = this.authMode === 'login' ? this.loginForm.email : this.registerForm.email;
           const password = this.authMode === 'login' ? this.loginForm.password : this.registerForm.password;
@@ -861,12 +1020,10 @@
             return;
           }
 
-          // Simulation de l'envoi du code par e-mail
           this.otpStep = true;
           this.showToast("Code de sécurité envoyé par e-mail !");
         },
 
-        // ÉTAPE 2 DE CONNEXION : VÉRIFICATION DU CODE OTP
         verifyOtpCode() {
           if (this.otpInput !== this.generatedOtp) {
             this.showToast("Code de sécurité incorrect. Essayez 123456.");
